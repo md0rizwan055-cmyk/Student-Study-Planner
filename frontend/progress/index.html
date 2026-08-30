@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress & Analytics — StudyAI</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .analytics-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6); }
+    .chart-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: var(--radius-2xl); padding: var(--space-5); }
+    .chart-title { font-family: 'Outfit',sans-serif; font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-4); }
+    .heatmap { display: grid; grid-template-columns: repeat(13,1fr); gap: 3px; }
+    .heatmap-cell { aspect-ratio: 1; border-radius: 2px; transition: transform var(--transition-fast); cursor: pointer; }
+    .heatmap-cell:hover { transform: scale(1.3); }
+    .heatmap-cell[data-studied="true"] { background: var(--primary); }
+    .heatmap-cell[data-studied="false"] { background: var(--border); }
+    .heatmap-cell[data-hours="high"] { background: var(--emerald-500); }
+    .heatmap-cell[data-hours="med"] { background: var(--primary); }
+    .heatmap-cell[data-hours="low"] { opacity: 0.5; }
+    @media (max-width: 900px) { .analytics-grid { grid-template-columns: repeat(2,1fr); } .charts-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<nav class="nav" role="navigation"><button id="sidebar-toggle" class="btn btn-icon" aria-label="Toggle sidebar">☰</button><a href="../dashboard/index.html" class="nav-logo"><div class="nav-logo-icon">🎓</div><span class="nav-logo-text">StudyAI</span></a></nav>
+<aside class="sidebar" role="navigation"><div class="sidebar-section">Main</div><a href="../dashboard/index.html" class="sidebar-item"><span>🏠</span> Dashboard</a><a href="../planner/index.html" class="sidebar-item"><span>📅</span> Planner</a><a href="../calendar/index.html" class="sidebar-item"><span>🗓️</span> Calendar</a><a href="../focus/index.html" class="sidebar-item"><span>⏱️</span> Focus Mode</a><div class="sidebar-section">Academic</div><a href="../subjects/index.html" class="sidebar-item"><span>📚</span> Subjects & Topics</a><a href="index.html" class="sidebar-item active" aria-current="page"><span>📊</span> Progress</a><div class="sidebar-section">AI</div><a href="../ai-chat/index.html" class="sidebar-item"><span>💬</span> AI Assistant</a><a href="../settings/index.html" class="sidebar-item"><span>⚙️</span> Settings</a><button class="sidebar-item" data-logout><span>🚪</span> Logout</button></aside>
+
+<main class="page-with-sidebar" role="main">
+  <div class="page-header">
+    <h1 class="page-title">Progress & Analytics 📊</h1>
+    <p class="text-secondary text-sm mt-1">Track your study performance and growth</p>
+  </div>
+
+  <!-- Stats Row -->
+  <section class="analytics-grid stagger" aria-label="Key statistics" role="region">
+    <div class="stat-card"><div class="stat-icon" style="background:var(--primary-bg)">📚</div><div class="stat-value" id="stat-topics">--</div><div class="stat-label">Topics Completed</div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--success-bg)">⏱️</div><div class="stat-value" id="stat-hours">--</div><div class="stat-label">Total Study Hours</div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--warning-bg)">🔥</div><div class="stat-value" id="stat-streak">--</div><div class="stat-label">Current Streak</div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--accent-bg)">✅</div><div class="stat-value" id="stat-sessions">--</div><div class="stat-label">Sessions Done</div></div>
+  </section>
+
+  <!-- Charts Grid -->
+  <div class="charts-grid" role="region" aria-label="Analytics charts">
+    <!-- Weekly Hours -->
+    <div class="chart-card">
+      <div class="chart-title">📈 Weekly Study Hours</div>
+      <canvas id="weekly-chart" aria-label="Weekly study hours chart" role="img" height="220"></canvas>
+    </div>
+
+    <!-- Subject Progress -->
+    <div class="chart-card">
+      <div class="chart-title">📚 Subject Completion</div>
+      <canvas id="subject-chart" aria-label="Subject completion bar chart" role="img" height="220"></canvas>
+    </div>
+
+    <!-- Session Stats -->
+    <div class="chart-card">
+      <div class="chart-title">📋 Session Breakdown</div>
+      <canvas id="sessions-chart" aria-label="Sessions pie chart" role="img" height="220"></canvas>
+    </div>
+
+    <!-- Completion Trend -->
+    <div class="chart-card">
+      <div class="chart-title">📈 Topics Completed (30 days)</div>
+      <canvas id="trend-chart" aria-label="Completion trend line chart" role="img" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Heatmap -->
+  <div class="chart-card mb-6" role="region" aria-label="Study activity heatmap">
+    <div class="flex items-center justify-between mb-4">
+      <div class="chart-title" style="margin:0">🔥 Study Streak (Last 90 Days)</div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 text-xs text-muted"><div style="width:12px;height:12px;background:var(--border);border-radius:2px"></div>No study</div>
+        <div class="flex items-center gap-2 text-xs text-muted"><div style="width:12px;height:12px;background:var(--primary);border-radius:2px"></div>Studied</div>
+        <div class="flex items-center gap-2 text-xs text-muted"><div style="width:12px;height:12px;background:var(--emerald-500);border-radius:2px"></div>3h+</div>
+      </div>
+    </div>
+    <div class="heatmap" id="heatmap" role="grid" aria-label="Study activity heatmap grid"></div>
+    <div class="flex items-center gap-4 mt-4">
+      <div class="text-sm"><span class="font-semibold" id="streak-current">0</span> <span class="text-muted">day streak</span></div>
+      <div class="text-sm"><span class="font-semibold" id="streak-longest">0</span> <span class="text-muted">longest streak</span></div>
+      <div class="text-sm ml-auto"><span class="font-semibold" id="streak-days">0</span> <span class="text-muted">total study days</span></div>
+    </div>
+  </div>
+
+  <!-- Subject Details -->
+  <div class="chart-card" role="region" aria-label="Subject readiness details">
+    <div class="chart-title">🎯 Exam Readiness by Subject</div>
+    <div id="subject-readiness" role="list" aria-live="polite">
+      <div class="skeleton skeleton-text" style="margin-bottom:12px"></div>
+      <div class="skeleton skeleton-text" style="margin-bottom:12px"></div>
+      <div class="skeleton skeleton-text"></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+<script type="module" src="../js/progress.js"></script>
+</body>
+</html>

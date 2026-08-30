@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up — StudyAI</title>
+  <meta name="description" content="Create your free StudyAI account and start studying smarter with AI-powered personalized timetables.">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .auth-left {
+      background: linear-gradient(135deg, rgba(0, 245, 160, 0.15), rgba(255, 184, 0, 0.10));
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: var(--space-16) var(--space-12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-left::before {
+      content: '';
+      position: absolute;
+      width: 450px; height: 450px;
+      background: radial-gradient(circle, rgba(0, 245, 160, 0.25), transparent 70%);
+      top: -120px; right: -120px;
+      border-radius: 50%;
+      animation: auroraDrift 18s ease-in-out infinite alternate;
+    }
+
+    .auth-left::after {
+      content: '';
+      position: absolute;
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(255, 184, 0, 0.18), transparent 70%);
+      bottom: -100px; left: -100px;
+      border-radius: 50%;
+      animation: orbFloat2 15s ease-in-out infinite alternate;
+    }
+
+    .auth-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: var(--space-12) var(--space-8);
+      overflow-y: auto;
+    }
+
+    .auth-form-box {
+      width: 100%;
+      max-width: 440px;
+      animation: fadeUp 0.5s ease;
+    }
+
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-8);
+      text-decoration: none;
+    }
+
+    .auth-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: var(--text-2xl);
+      font-weight: var(--font-extrabold);
+      margin-bottom: var(--space-2);
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      margin-top: var(--space-6);
+    }
+
+    .password-strength {
+      margin-top: var(--space-2);
+    }
+
+    .strength-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .strength-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.3s, background 0.3s;
+      width: 0%;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      margin-top: var(--space-8);
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+    }
+
+    .feature-check {
+      width: 24px; height: 24px;
+      border-radius: var(--radius-md);
+      background: var(--success-bg);
+      color: var(--success);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    @media (max-width: 768px) {
+      .auth-page { grid-template-columns: 1fr; }
+      .auth-left { display: none; }
+    }
+  </style>
+</head>
+<body>
+<main class="auth-page">
+  <!-- Left panel -->
+  <div class="auth-left" aria-hidden="true">
+    <a href="../index.html" class="nav-logo" style="margin-bottom:var(--space-12)">
+      <div class="nav-logo-icon">🎓</div>
+      <span class="nav-logo-text">StudyAI</span>
+    </a>
+    <h2 style="font-size:var(--text-3xl);margin-bottom:var(--space-4);color:var(--text-primary)">
+      Start your journey to <span class="gradient-text">academic excellence</span>
+    </h2>
+    <p class="text-secondary" style="max-width:400px;margin-bottom:var(--space-8)">
+      Join students who study smarter with AI-powered personalized schedules.
+    </p>
+    <ul class="feature-list">
+      <li class="feature-item">
+        <div class="feature-check">✓</div>
+        <div>
+          <div class="font-semibold text-sm" style="color:var(--text-primary)">AI-Generated Timetable</div>
+          <div class="text-xs text-muted">Personalized schedule based on your syllabus and exams</div>
+        </div>
+      </li>
+      <li class="feature-item">
+        <div class="feature-check">✓</div>
+        <div>
+          <div class="font-semibold text-sm" style="color:var(--text-primary)">Smart Priority Engine</div>
+          <div class="text-xs text-muted">Always study the most important topics first</div>
+        </div>
+      </li>
+      <li class="feature-item">
+        <div class="feature-check">✓</div>
+        <div>
+          <div class="font-semibold text-sm" style="color:var(--text-primary)">Adaptive Scheduling</div>
+          <div class="text-xs text-muted">Plan auto-adjusts when you miss sessions</div>
+        </div>
+      </li>
+      <li class="feature-item">
+        <div class="feature-check">✓</div>
+        <div>
+          <div class="font-semibold text-sm" style="color:var(--text-primary)">AI Chat Assistant</div>
+          <div class="text-xs text-muted">Get personalized study advice anytime</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Right panel: form -->
+  <div class="auth-right">
+    <div class="auth-form-box">
+      <a href="../index.html" class="nav-logo auth-logo" aria-label="StudyAI home">
+        <div class="nav-logo-icon">🎓</div>
+        <span class="nav-logo-text">StudyAI</span>
+      </a>
+
+      <h1 class="auth-title">Create your account</h1>
+      <p class="text-secondary text-sm">Get started in under 2 minutes — no credit card needed.</p>
+
+      <!-- Error banner -->
+      <div id="error-banner" class="hidden" role="alert" aria-live="polite"
+        style="background:var(--danger-bg);border:1px solid rgba(244,63,94,0.3);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);margin-top:var(--space-4);color:var(--danger-light);font-size:var(--text-sm)">
+      </div>
+
+      <form class="auth-form" id="signup-form" novalidate aria-label="Create account form">
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name</label>
+          <div class="input-group">
+            <span class="input-icon" aria-hidden="true">👤</span>
+            <input
+              type="text" id="name" name="name"
+              class="form-input" placeholder="Jane Doe"
+              required autocomplete="name"
+              minlength="2" maxlength="100"
+              aria-required="true"
+              aria-describedby="name-error"
+            >
+          </div>
+          <div class="form-error hidden" id="name-error" role="alert"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <div class="input-group">
+            <span class="input-icon" aria-hidden="true">✉️</span>
+            <input
+              type="email" id="email" name="email"
+              class="form-input" placeholder="jane@university.edu"
+              required autocomplete="email"
+              aria-required="true"
+              aria-describedby="email-error"
+            >
+          </div>
+          <div class="form-error hidden" id="email-error" role="alert"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-group icon-right">
+            <span class="input-icon" aria-hidden="true">🔒</span>
+            <input
+              type="password" id="password" name="password"
+              class="form-input" placeholder="Min. 8 characters"
+              required autocomplete="new-password"
+              minlength="8"
+              aria-required="true"
+              aria-describedby="password-error password-strength-desc"
+            >
+            <button type="button" class="input-icon-right" id="toggle-password"
+              aria-label="Toggle password visibility">👁</button>
+          </div>
+          <div class="password-strength" aria-live="polite">
+            <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+            <div class="form-hint" id="strength-label" id="password-strength-desc">Enter a password</div>
+          </div>
+          <div class="form-error hidden" id="password-error" role="alert"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirm-password">Confirm Password</label>
+          <div class="input-group icon-right">
+            <span class="input-icon" aria-hidden="true">🔒</span>
+            <input
+              type="password" id="confirm-password" name="confirm_password"
+              class="form-input" placeholder="Repeat your password"
+              required autocomplete="new-password"
+              aria-required="true"
+              aria-describedby="confirm-error"
+            >
+            <button type="button" class="input-icon-right" id="toggle-confirm"
+              aria-label="Toggle password visibility">👁</button>
+          </div>
+          <div class="form-error hidden" id="confirm-error" role="alert"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" id="submit-btn"
+          style="margin-top:var(--space-2);height:48px">
+          <span id="btn-text">Create Account</span>
+          <span id="btn-spinner" class="hidden"><div class="spinner"></div></span>
+        </button>
+      </form>
+
+      <div class="divider-text mt-6">
+        <span>Already have an account?</span>
+      </div>
+      <a href="login.html" class="btn btn-secondary w-full mt-4" style="height:48px">
+        Sign in instead
+      </a>
+
+      <p class="text-center text-xs text-muted mt-6">
+        By creating an account, you agree to our
+        <a href="#" style="color:var(--primary-light)">Terms</a> and
+        <a href="#" style="color:var(--primary-light)">Privacy Policy</a>.
+      </p>
+    </div>
+  </div>
+</main>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+
+<script type="module" src="../js/auth.js"></script>
+</body>
+</html>

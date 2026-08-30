@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subjects & Topics — StudyAI</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .subjects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-5); }
+    .subject-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: var(--radius-2xl); overflow: hidden; transition: all var(--transition-base); }
+    .subject-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .subject-card-header { padding: var(--space-5); display: flex; align-items: center; gap: var(--space-3); }
+    .subject-color-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .topics-list { border-top: 1px solid var(--border); }
+    .topic-item { padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: var(--space-3); transition: background var(--transition-fast); }
+    .topic-item:last-child { border-bottom: none; }
+    .topic-item:hover { background: var(--bg-card-hover); }
+    .topic-info { flex: 1; min-width: 0; }
+    .topic-name { font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--text-primary); }
+    .topic-meta { font-size: var(--text-xs); color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<nav class="nav" role="navigation"><button id="sidebar-toggle" class="btn btn-icon" aria-label="Toggle sidebar">☰</button><a href="../dashboard/index.html" class="nav-logo"><div class="nav-logo-icon">🎓</div><span class="nav-logo-text">StudyAI</span></a><div class="ml-auto flex gap-3"><button class="btn btn-primary" id="add-subject-btn" aria-label="Add new subject">+ Add Subject</button></div></nav>
+<aside class="sidebar" role="navigation" aria-label="Main navigation"><div class="sidebar-section">Main</div><a href="../dashboard/index.html" class="sidebar-item"><span>🏠</span> Dashboard</a><a href="../planner/index.html" class="sidebar-item"><span>📅</span> Planner</a><a href="../calendar/index.html" class="sidebar-item"><span>🗓️</span> Calendar</a><a href="../focus/index.html" class="sidebar-item"><span>⏱️</span> Focus Mode</a><div class="sidebar-section">Academic</div><a href="index.html" class="sidebar-item active" aria-current="page"><span>📚</span> Subjects & Topics</a><a href="../progress/index.html" class="sidebar-item"><span>📊</span> Progress</a><div class="sidebar-section">AI</div><a href="../ai-chat/index.html" class="sidebar-item"><span>💬</span> AI Assistant</a><a href="../settings/index.html" class="sidebar-item"><span>⚙️</span> Settings</a><button class="sidebar-item" data-logout><span>🚪</span> Logout</button></aside>
+<main class="page-with-sidebar" role="main">
+  <div class="page-header">
+    <div class="flex items-center justify-between">
+      <div><h1 class="page-title">Subjects & Topics 📚</h1><p class="text-secondary text-sm mt-1">Manage your subjects, topics, and track progress</p></div>
+      <div class="flex gap-3">
+        <input type="text" class="form-input" id="search-input" placeholder="🔍 Search topics..." style="width:220px" aria-label="Search topics">
+      </div>
+    </div>
+  </div>
+  <div id="subjects-container" class="subjects-grid stagger" role="list" aria-label="Subjects list" aria-live="polite">
+    <div class="skeleton skeleton-card" style="height:280px"></div>
+    <div class="skeleton skeleton-card" style="height:280px"></div>
+    <div class="skeleton skeleton-card" style="height:280px"></div>
+  </div>
+</main>
+
+<!-- Subject Modal -->
+<div class="modal-overlay hidden" id="subject-modal" role="dialog" aria-modal="true" aria-labelledby="subject-modal-title">
+  <div class="modal">
+    <div class="modal-header"><h3 class="modal-title" id="subject-modal-title">Add Subject</h3><button class="btn btn-icon" id="close-subject-modal" aria-label="Close">✕</button></div>
+    <form id="subject-form" aria-label="Subject form">
+      <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+        <div class="form-group"><label class="form-label" for="s-name">Subject Name *</label><input type="text" id="s-name" class="form-input" required aria-required="true"></div>
+        <div class="form-group"><label class="form-label" for="s-exam">Exam Date</label><input type="date" id="s-exam" class="form-input"></div>
+        <div class="form-group"><label class="form-label" for="s-marks">Total Marks</label><input type="number" id="s-marks" class="form-input" min="0" max="1000" placeholder="100"></div>
+        <div class="form-group">
+          <label class="form-label">Color</label>
+          <div class="flex gap-2 flex-wrap mt-2" id="color-picker">
+            ${['#00f5a0','#ffb800','#00f2fe','#10b981','#f59e0b','#ff4757','#38bdf8','#a3e635'].map(c =>
+              `<div class="color-swatch" style="background:${c}" data-color="${c}" role="button" tabindex="0" aria-label="Color ${c}"></div>`
+            ).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary" id="cancel-subject">Cancel</button><button type="submit" class="btn btn-primary" id="save-subject-btn">Save Subject</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- Topic Modal -->
+<div class="modal-overlay hidden" id="topic-modal" role="dialog" aria-modal="true" aria-labelledby="topic-modal-title">
+  <div class="modal">
+    <div class="modal-header"><h3 class="modal-title" id="topic-modal-title">Add Topic</h3><button class="btn btn-icon" id="close-topic-modal" aria-label="Close">✕</button></div>
+    <form id="topic-form" aria-label="Topic form">
+      <input type="hidden" id="t-subject-id">
+      <input type="hidden" id="t-topic-id">
+      <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+        <div class="form-group"><label class="form-label" for="t-name">Topic Name *</label><input type="text" id="t-name" class="form-input" required aria-required="true"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">
+          <div class="form-group">
+            <label class="form-label" for="t-difficulty">Difficulty</label>
+            <select id="t-difficulty" class="form-input form-select">
+              <option value="1">1 — Very Easy</option><option value="2">2 — Easy</option><option value="3" selected>3 — Medium</option><option value="4">4 — Hard</option><option value="5">5 — Very Hard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="t-importance">Importance</label>
+            <select id="t-importance" class="form-input form-select">
+              <option value="1">1 — Very Low</option><option value="2">2 — Low</option><option value="3" selected>3 — Medium</option><option value="4">4 — High</option><option value="5">5 — Critical</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">
+          <div class="form-group"><label class="form-label" for="t-hours">Est. Hours</label><input type="number" id="t-hours" class="form-input" value="2" min="0.5" max="50" step="0.5"></div>
+          <div class="form-group"><label class="form-label" for="t-progress">Current Progress %</label><input type="number" id="t-progress" class="form-input" value="0" min="0" max="100"></div>
+        </div>
+        <div class="form-group"><label class="form-label" for="t-notes">Notes (optional)</label><textarea id="t-notes" class="form-input" rows="2" style="resize:vertical"></textarea></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary" id="cancel-topic">Cancel</button><button type="submit" class="btn btn-primary" id="save-topic-btn">Save Topic</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+<script type="module" src="../js/subjects.js"></script>
+</body></html>

@@ -1,0 +1,10 @@
+{
+  "pythonPlatform": "Windows",
+  "pythonVersion": "3.14",
+  "pythonPath": "C:\\Users\\Kaifee\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+  "extraPaths": [
+    "d:\\Studyplanner",
+    "d:\\Studyplanner\\backend",
+    "C:\\Users\\Kaifee\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages"
+  ]
+}

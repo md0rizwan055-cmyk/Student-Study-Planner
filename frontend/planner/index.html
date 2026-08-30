@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planner — StudyAI</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .planner-tabs { display: flex; gap: var(--space-1); background: var(--bg-card); padding: var(--space-1); border-radius: var(--radius-xl); border: 1px solid var(--border); width: fit-content; margin-bottom: var(--space-6); }
+    .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-3); }
+    .day-col { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); padding: var(--space-3); min-height: 200px; }
+    .day-header { font-size: var(--text-sm); font-weight: 700; text-align: center; padding-bottom: var(--space-2); margin-bottom: var(--space-2); border-bottom: 1px solid var(--border); color: var(--text-primary); }
+    .day-header.today { color: var(--primary-light); }
+    .session-pill { background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-2); border-left: 3px solid var(--primary); font-size: var(--text-xs); cursor: pointer; transition: all var(--transition-fast); }
+    .session-pill:hover { background: var(--bg-card-hover); transform: translateX(2px); }
+    .daily-session-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-2xl); padding: var(--space-4); margin-bottom: var(--space-3); display: flex; align-items: center; gap: var(--space-4); transition: all var(--transition-fast); }
+    .daily-session-card:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
+    .time-block { text-align: center; flex-shrink: 0; width: 60px; }
+    .time-start { font-family: 'JetBrains Mono', monospace; font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
+    .time-dur { font-size: var(--text-xs); color: var(--text-muted); }
+    .ai-explanation { background: linear-gradient(135deg, rgba(0,245,160,0.12), rgba(255,184,0,0.08)); border: 1px solid rgba(0,245,160,0.25); border-radius: var(--radius-2xl); padding: var(--space-5); margin-bottom: var(--space-6); box-shadow: 0 0 20px rgba(0,245,160,0.1); }
+    @media (max-width: 900px) { .week-grid { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width: 600px) { .week-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<nav class="nav" role="navigation"><button id="sidebar-toggle" class="btn btn-icon" aria-label="Toggle sidebar">☰</button><a href="../dashboard/index.html" class="nav-logo"><div class="nav-logo-icon">🎓</div><span class="nav-logo-text">StudyAI</span></a>
+<div class="ml-auto flex gap-3">
+  <button class="btn btn-secondary" id="regen-btn" aria-label="Regenerate plan">🔄 Regenerate</button>
+  <button class="btn btn-primary" id="redistribute-btn" aria-label="Redistribute missed sessions">Sync Missed</button>
+</div></nav>
+<aside class="sidebar" role="navigation"><div class="sidebar-section">Main</div><a href="../dashboard/index.html" class="sidebar-item"><span>🏠</span> Dashboard</a><a href="index.html" class="sidebar-item active" aria-current="page"><span>📅</span> Planner</a><a href="../calendar/index.html" class="sidebar-item"><span>🗓️</span> Calendar</a><a href="../focus/index.html" class="sidebar-item"><span>⏱️</span> Focus Mode</a><div class="sidebar-section">Academic</div><a href="../subjects/index.html" class="sidebar-item"><span>📚</span> Subjects & Topics</a><a href="../progress/index.html" class="sidebar-item"><span>📊</span> Progress</a><div class="sidebar-section">AI</div><a href="../ai-chat/index.html" class="sidebar-item"><span>💬</span> AI Assistant</a><a href="../settings/index.html" class="sidebar-item"><span>⚙️</span> Settings</a><button class="sidebar-item" data-logout><span>🚪</span> Logout</button></aside>
+
+<main class="page-with-sidebar" role="main">
+  <div class="page-header">
+    <div class="flex items-center justify-between">
+      <div><h1 class="page-title">Study Planner 📅</h1><p class="text-secondary text-sm mt-1">Your AI-generated personalized study schedule</p></div>
+    </div>
+  </div>
+
+  <!-- AI Explanation Banner -->
+  <div class="ai-explanation hidden" id="ai-explanation" role="region" aria-label="AI plan explanation">
+    <div class="flex items-center gap-2 mb-2"><span aria-hidden="true">🤖</span><span class="font-semibold text-sm" style="color:var(--text-primary)">AI Plan Summary</span></div>
+    <p class="text-sm text-secondary" id="ai-explanation-text"></p>
+  </div>
+
+  <!-- View tabs -->
+  <div class="planner-tabs" role="tablist">
+    <button class="tab-btn active" role="tab" aria-selected="true" id="tab-daily" data-view="daily" aria-controls="view-daily">📅 Daily</button>
+    <button class="tab-btn" role="tab" aria-selected="false" id="tab-weekly" data-view="weekly" aria-controls="view-weekly">📆 Weekly</button>
+    <button class="tab-btn" role="tab" aria-selected="false" id="tab-exam" data-view="exam" aria-controls="view-exam">🎯 Exam Prep</button>
+  </div>
+
+  <!-- Daily view -->
+  <div id="view-daily" role="tabpanel" aria-labelledby="tab-daily">
+    <div class="flex items-center gap-3 mb-4">
+      <button class="btn btn-secondary btn-sm" id="prev-day" aria-label="Previous day">←</button>
+      <h2 id="daily-date" style="font-size:var(--text-lg);font-weight:700;color:var(--text-primary)">Today</h2>
+      <button class="btn btn-secondary btn-sm" id="next-day" aria-label="Next day">→</button>
+      <button class="btn btn-ghost btn-sm" id="today-btn" aria-label="Go to today">Today</button>
+    </div>
+    <div id="daily-sessions" role="list" aria-label="Daily sessions" aria-live="polite">
+      <div class="skeleton skeleton-card" style="height:80px;margin-bottom:12px"></div>
+      <div class="skeleton skeleton-card" style="height:80px;margin-bottom:12px"></div>
+      <div class="skeleton skeleton-card" style="height:80px"></div>
+    </div>
+  </div>
+
+  <!-- Weekly view -->
+  <div id="view-weekly" class="hidden" role="tabpanel" aria-labelledby="tab-weekly">
+    <div class="flex items-center gap-3 mb-4">
+      <button class="btn btn-secondary btn-sm" id="prev-week" aria-label="Previous week">← Prev Week</button>
+      <h2 id="week-label" style="font-size:var(--text-lg);font-weight:700;color:var(--text-primary)">This Week</h2>
+      <button class="btn btn-secondary btn-sm" id="next-week" aria-label="Next week">Next Week →</button>
+    </div>
+    <div id="weekly-grid" class="week-grid" role="grid" aria-label="Weekly schedule"></div>
+  </div>
+
+  <!-- Exam Prep view -->
+  <div id="view-exam" class="hidden" role="tabpanel" aria-labelledby="tab-exam">
+    <div id="exam-prep-content" role="list" aria-label="Exam preparation" aria-live="polite">
+      <div class="skeleton skeleton-card" style="height:120px;margin-bottom:12px"></div>
+      <div class="skeleton skeleton-card" style="height:120px"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Reschedule Modal -->
+<div class="modal-overlay hidden" id="reschedule-modal" role="dialog" aria-modal="true" aria-labelledby="reschedule-title">
+  <div class="modal modal-sm">
+    <div class="modal-header"><h3 class="modal-title" id="reschedule-title">Reschedule Session</h3><button class="btn btn-icon" id="close-reschedule" aria-label="Close">✕</button></div>
+    <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+      <input type="hidden" id="reschedule-session-id">
+      <div class="form-group"><label class="form-label" for="new-date">New Date</label><input type="date" id="new-date" class="form-input" aria-required="true"></div>
+      <div class="form-group"><label class="form-label" for="new-time">New Start Time</label><input type="time" id="new-time" class="form-input" aria-required="true"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" id="cancel-reschedule">Cancel</button><button class="btn btn-primary" id="confirm-reschedule">Reschedule</button></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+<script type="module" src="../js/planner.js"></script>
+</body>
+</html>

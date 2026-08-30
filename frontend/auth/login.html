@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — StudyAI</title>
+  <meta name="description" content="Login to your StudyAI account and continue your personalized study journey.">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--space-6); }
+
+    .login-container {
+      width: 100%;
+      max-width: 440px;
+      animation: fadeUp 0.5s ease;
+    }
+
+    .auth-form { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-6); }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      color: var(--text-muted); font-size: var(--text-sm);
+      margin-bottom: var(--space-8);
+      transition: color var(--transition-fast);
+    }
+    .back-link:hover { color: var(--text-primary); }
+  </style>
+</head>
+<body>
+<main class="login-container" aria-label="Login">
+  <a href="../index.html" class="back-link">← Back to home</a>
+
+  <a href="../index.html" class="nav-logo" style="margin-bottom:var(--space-6)" aria-label="StudyAI home">
+    <div class="nav-logo-icon">🎓</div>
+    <span class="nav-logo-text">StudyAI</span>
+  </a>
+
+  <h1 style="font-size:var(--text-2xl);font-weight:800;margin-bottom:var(--space-2)">Welcome back</h1>
+  <p class="text-secondary text-sm">Sign in to continue your study journey 🚀</p>
+
+  <div id="error-banner" class="hidden" role="alert" aria-live="polite"
+    style="background:var(--danger-bg);border:1px solid rgba(244,63,94,0.3);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);margin-top:var(--space-4);color:var(--danger-light);font-size:var(--text-sm)">
+  </div>
+
+  <form class="auth-form" id="login-form" novalidate aria-label="Login form">
+    <div class="form-group">
+      <label class="form-label" for="email">Email Address</label>
+      <div class="input-group">
+        <span class="input-icon" aria-hidden="true">✉️</span>
+        <input
+          type="email" id="email" name="email"
+          class="form-input" placeholder="your@email.com"
+          required autocomplete="email"
+          aria-required="true"
+          aria-describedby="email-error"
+        >
+      </div>
+      <div class="form-error hidden" id="email-error" role="alert"></div>
+    </div>
+
+    <div class="form-group">
+      <div class="flex justify-between items-center">
+        <label class="form-label" for="password">Password</label>
+      </div>
+      <div class="input-group icon-right">
+        <span class="input-icon" aria-hidden="true">🔒</span>
+        <input
+          type="password" id="password" name="password"
+          class="form-input" placeholder="Your password"
+          required autocomplete="current-password"
+          aria-required="true"
+          aria-describedby="password-error"
+        >
+        <button type="button" class="input-icon-right" id="toggle-password"
+          aria-label="Toggle password visibility">👁</button>
+      </div>
+      <div class="form-error hidden" id="password-error" role="alert"></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-full" id="submit-btn"
+      style="margin-top:var(--space-2);height:48px" aria-label="Sign in">
+      <span id="btn-text">Sign In</span>
+      <span id="btn-spinner" class="hidden"><div class="spinner"></div></span>
+    </button>
+  </form>
+
+  <div class="divider-text mt-6">
+    <span>Don't have an account?</span>
+  </div>
+  <a href="signup.html" class="btn btn-secondary w-full mt-4" style="height:48px">
+    Create free account
+  </a>
+
+  <div class="flex justify-center gap-4 mt-6" role="group" aria-label="Theme selection">
+    <button class="btn btn-icon" data-theme-btn="light" title="Light mode" aria-label="Light mode">☀️</button>
+    <button class="btn btn-icon" data-theme-btn="dark" title="Dark mode" aria-label="Dark mode">🌙</button>
+    <button class="btn btn-icon" data-theme-btn="system" title="System mode" aria-label="System mode">💻</button>
+  </div>
+</main>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+
+<script type="module" src="../js/auth.js"></script>
+</body>
+</html>

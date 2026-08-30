@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Your Profile — StudyAI</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    body { min-height: 100vh; display: flex; flex-direction: column; }
+
+    .onboarding-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    .onboarding-sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: var(--space-8) var(--space-6);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .step-list { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-8); }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-lg);
+      transition: all var(--transition-fast);
+    }
+    .step-item.active { background: var(--primary-bg); }
+    .step-item.completed { opacity: 0.7; }
+
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--text-xs);
+      font-weight: var(--font-bold);
+      flex-shrink: 0;
+      transition: all var(--transition-base);
+    }
+    .step-item.active .step-num { background: var(--primary); color: #06090e; box-shadow: var(--shadow-glow-emerald); }
+    .step-item.completed .step-num { background: var(--success); color: #fff; }
+
+    .onboarding-main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-12) var(--space-8);
+      overflow-y: auto;
+    }
+
+    .onboarding-form-box {
+      width: 100%;
+      max-width: 680px;
+      animation: fadeUp 0.4s ease;
+    }
+
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    .step-header { margin-bottom: var(--space-8); }
+    .step-header h2 { font-size: var(--text-2xl); font-weight: 800; margin-bottom: var(--space-2); }
+
+    .subjects-list { display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4); }
+
+    .subject-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      display: grid;
+      grid-template-columns: 1fr 1fr auto auto;
+      gap: var(--space-3);
+      align-items: end;
+      transition: all var(--transition-fast);
+    }
+    .subject-row:hover { border-color: var(--primary); }
+
+    .color-swatch {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all var(--transition-fast);
+    }
+    .color-swatch.selected { border-color: #fff; transform: scale(1.15); }
+
+    .color-picker-row { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
+
+    .topics-container { display: flex; flex-direction: column; gap: var(--space-4); }
+
+    .subject-topics-group {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+
+    .subject-header {
+      padding: var(--space-4);
+      background: var(--bg-surface-2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .topic-row {
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--border-subtle);
+      display: grid;
+      grid-template-columns: 1fr auto auto auto auto;
+      gap: var(--space-3);
+      align-items: center;
+    }
+    .topic-row:last-child { border-bottom: none; }
+
+    .class-timings-list { display: flex; flex-direction: column; gap: var(--space-3); }
+
+    .timing-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: var(--space-3);
+      align-items: end;
+    }
+
+    .progress-track {
+      background: var(--border);
+      height: 4px;
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-bottom: var(--space-8);
+    }
+
+    .progress-indicator {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: var(--radius-full);
+      transition: width 0.5s ease;
+    }
+
+    .step-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--space-8);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      .onboarding-layout { grid-template-columns: 1fr; }
+      .onboarding-sidebar { display: none; }
+      .subject-row { grid-template-columns: 1fr; }
+      .topic-row { grid-template-columns: 1fr; }
+      .timing-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="onboarding-layout">
+  <!-- Sidebar steps -->
+  <aside class="onboarding-sidebar" role="navigation" aria-label="Onboarding steps">
+    <a href="../index.html" class="nav-logo" aria-label="StudyAI home">
+      <div class="nav-logo-icon">🎓</div>
+      <span class="nav-logo-text">StudyAI</span>
+    </a>
+    <p class="text-sm text-muted mt-3">Let's set up your personalized study planner</p>
+
+    <ol class="step-list" role="list" id="step-list">
+      <li class="step-item active" data-step="1" role="listitem">
+        <div class="step-num" aria-label="Step 1">1</div>
+        <div>
+          <div class="text-sm font-semibold" style="color:var(--text-primary)">Personal Info</div>
+          <div class="text-xs text-muted">College, year, goals</div>
+        </div>
+      </li>
+      <li class="step-item" data-step="2" role="listitem">
+        <div class="step-num" aria-label="Step 2">2</div>
+        <div>
+          <div class="text-sm font-semibold">Subjects</div>
+          <div class="text-xs text-muted">Add your subjects</div>
+        </div>
+      </li>
+      <li class="step-item" data-step="3" role="listitem">
+        <div class="step-num" aria-label="Step 3">3</div>
+        <div>
+          <div class="text-sm font-semibold">Topics</div>
+          <div class="text-xs text-muted">Topics per subject</div>
+        </div>
+      </li>
+      <li class="step-item" data-step="4" role="listitem">
+        <div class="step-num" aria-label="Step 4">4</div>
+        <div>
+          <div class="text-sm font-semibold">Schedule</div>
+          <div class="text-xs text-muted">Availability & timings</div>
+        </div>
+      </li>
+      <li class="step-item" data-step="5" role="listitem">
+        <div class="step-num" aria-label="Step 5">5</div>
+        <div>
+          <div class="text-sm font-semibold">Goals</div>
+          <div class="text-xs text-muted">Academic goals</div>
+        </div>
+      </li>
+      <li class="step-item" data-step="6" role="listitem">
+        <div class="step-num" aria-label="Step 6">6</div>
+        <div>
+          <div class="text-sm font-semibold">Review & Generate</div>
+          <div class="text-xs text-muted">Create your AI plan</div>
+        </div>
+      </li>
+    </ol>
+  </aside>
+
+  <!-- Main content -->
+  <main class="onboarding-main">
+    <div class="onboarding-form-box">
+      <!-- Progress bar -->
+      <div class="progress-track" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="6" aria-label="Setup progress">
+        <div class="progress-indicator" id="progress-indicator" style="width:16.6%"></div>
+      </div>
+
+      <!-- Step 1: Personal Info -->
+      <div class="step-panel active" id="step-1" role="region" aria-labelledby="step1-title">
+        <div class="step-header">
+          <div class="badge badge-primary mb-4">Step 1 of 6</div>
+          <h2 id="step1-title">Tell us about yourself 👋</h2>
+          <p class="text-secondary text-sm">Help us personalize your experience</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label" for="college">College / School Name</label>
+            <input type="text" id="college" class="form-input" placeholder="e.g. Delhi University" autocomplete="organization">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="academic-year">Academic Year / Class</label>
+            <select id="academic-year" class="form-input form-select" aria-label="Academic year">
+              <option value="">Select year</option>
+              <option>Class 11</option>
+              <option>Class 12</option>
+              <option>1st Year</option>
+              <option>2nd Year</option>
+              <option>3rd Year</option>
+              <option>4th Year</option>
+              <option>Postgraduate</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="board">Board / University</label>
+            <input type="text" id="board" class="form-input" placeholder="e.g. CBSE, Mumbai University" autocomplete="off">
+          </div>
+        </div>
+        <div class="step-nav">
+          <div></div>
+          <button class="btn btn-primary" id="next-1" aria-label="Continue to Subjects">Next: Add Subjects →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Subjects -->
+      <div class="step-panel" id="step-2" role="region" aria-labelledby="step2-title">
+        <div class="step-header">
+          <div class="badge badge-primary mb-4">Step 2 of 6</div>
+          <h2 id="step2-title">Add your subjects 📚</h2>
+          <p class="text-secondary text-sm">Add all subjects you're studying this semester</p>
+        </div>
+
+        <div class="subjects-list" id="subjects-list" role="list" aria-label="Added subjects"></div>
+
+        <button class="btn btn-secondary w-full" id="add-subject-btn" aria-label="Add another subject">
+          + Add Subject
+        </button>
+
+        <div class="step-nav">
+          <button class="btn btn-ghost" id="back-2" aria-label="Go back to Personal Info">← Back</button>
+          <button class="btn btn-primary" id="next-2" aria-label="Continue to Topics">Next: Add Topics →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Topics -->
+      <div class="step-panel" id="step-3" role="region" aria-labelledby="step3-title">
+        <div class="step-header">
+          <div class="badge badge-primary mb-4">Step 3 of 6</div>
+          <h2 id="step3-title">Add topics for each subject 🗂️</h2>
+          <p class="text-secondary text-sm">Add topics with difficulty, importance and estimated hours</p>
+        </div>
+        <div class="topics-container" id="topics-container" role="list"></div>
+        <div class="step-nav">
+          <button class="btn btn-ghost" id="back-3" aria-label="Go back to Subjects">← Back</button>
+          <button class="btn btn-primary" id="next-3" aria-label="Continue to Schedule">Next: Schedule →</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Schedule -->
+      <div class="step-panel" id="step-4" role="region" aria-labelledby="step4-title">
+        <div class="step-header">
+          <div class="badge badge-primary mb-4">Step 4 of 6</div>
+          <h2 id="step4-title">Set your study schedule ⏰</h2>
+          <p class="text-secondary text-sm">Tell the AI your availability and preferences</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5)">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label" for="daily-hours">Daily Study Hours: <strong id="hours-display">4</strong>h</label>
+            <input type="range" class="form-range" id="daily-hours" min="1" max="12" step="0.5" value="4"
+              aria-valuemin="1" aria-valuemax="12" aria-valuenow="4" aria-label="Daily study hours">
+            <div class="flex justify-between text-xs text-muted mt-1"><span>1h</span><span>12h</span></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="study-time">Preferred Study Time</label>
+            <select id="study-time" class="form-input form-select" aria-label="Preferred study time">
+              <option value="morning">🌅 Morning (6am–12pm)</option>
+              <option value="afternoon">☀️ Afternoon (12pm–5pm)</option>
+              <option value="evening">🌆 Evening (5pm–9pm)</option>
+              <option value="night">🌙 Night (9pm–12am)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="break-duration">Break Duration</label>
+            <select id="break-duration" class="form-input form-select" aria-label="Break duration">
+              <option value="10">10 minutes</option>
+              <option value="15" selected>15 minutes</option>
+              <option value="20">20 minutes</option>
+              <option value="30">30 minutes</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Weekend Study</label>
+            <div class="flex gap-4 mt-2">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <label class="toggle" aria-label="Study on Saturdays">
+                  <input type="checkbox" id="saturday" checked>
+                  <div class="toggle-slider"></div>
+                </label>
+                <span class="text-sm">Saturday</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <label class="toggle" aria-label="Study on Sundays">
+                  <input type="checkbox" id="sunday" checked>
+                  <div class="toggle-slider"></div>
+                </label>
+                <span class="text-sm">Sunday</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group mt-6">
+          <div class="flex justify-between items-center mb-3">
+            <label class="form-label">Class / College Timings (blocked slots)</label>
+            <button class="btn btn-secondary btn-sm" id="add-timing" aria-label="Add class timing">+ Add Timing</button>
+          </div>
+          <div class="class-timings-list" id="class-timings" role="list" aria-label="Class timings"></div>
+          <p class="text-xs text-muted mt-2">The AI will avoid scheduling sessions during these times.</p>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-ghost" id="back-4" aria-label="Go back to Topics">← Back</button>
+          <button class="btn btn-primary" id="next-4" aria-label="Continue to Goals">Next: Goals →</button>
+        </div>
+      </div>
+
+      <!-- Step 5: Goals -->
+      <div class="step-panel" id="step-5" role="region" aria-labelledby="step5-title">
+        <div class="step-header">
+          <div class="badge badge-primary mb-4">Step 5 of 6</div>
+          <h2 id="step5-title">Set your academic goals 🎯</h2>
+          <p class="text-secondary text-sm">Help the AI understand what you want to achieve</p>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <div class="form-group">
+            <label class="form-label" for="goals">Academic Goals</label>
+            <textarea id="goals" class="form-input" rows="3"
+              placeholder="e.g. Score 90%+ in all subjects, pass JEE with good rank, complete syllabus 2 weeks before exams..."
+              style="resize:vertical" aria-label="Your academic goals"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="commitments">Existing Commitments (optional)</label>
+            <textarea id="commitments" class="form-input" rows="3"
+              placeholder="e.g. Coaching classes Mon-Wed 6-8pm, part-time work on weekends, sports practice Thursday..."
+              style="resize:vertical" aria-label="Your existing commitments"></textarea>
+            <div class="form-hint">These will be considered when generating your study plan</div>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-ghost" id="back-5" aria-label="Go back to Schedule">← Back</button>
+          <button class="btn btn-primary" id="next-5" aria-label="Continue to Review">Next: Review →</button>
+        </div>
+      </div>
+
+      <!-- Step 6: Review & Generate -->
+      <div class="step-panel" id="step-6" role="region" aria-labelledby="step6-title">
+        <div class="step-header">
+          <div class="badge badge-success mb-4">Final Step</div>
+          <h2 id="step6-title">Review & Generate Your AI Plan 🤖</h2>
+          <p class="text-secondary text-sm">Everything looks good? Let the AI create your personalized timetable!</p>
+        </div>
+
+        <div id="summary-content" role="list" aria-label="Profile summary">
+          <div class="card card-sm mb-4">
+            <h4 class="font-semibold mb-3" style="color:var(--text-primary)">📋 Summary</h4>
+            <div id="summary-text" class="text-sm text-secondary"></div>
+          </div>
+        </div>
+
+        <div class="card" style="background:linear-gradient(135deg,rgba(0,245,160,0.12),rgba(255,184,0,0.08));border-color:rgba(0,245,160,0.25);box-shadow:0 0 25px rgba(0,245,160,0.12)">
+          <div class="flex items-center gap-3 mb-4">
+            <span style="font-size:1.5rem">🤖</span>
+            <div>
+              <div class="font-semibold" style="color:var(--text-primary)">AI Planning Engine</div>
+              <div class="text-xs text-muted">Will analyze your data and generate a personalized schedule</div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-2 text-sm text-secondary">
+            <div>✓ Prioritize topics by difficulty, importance and exam proximity</div>
+            <div>✓ Respect your class timings and availability</div>
+            <div>✓ Schedule learning → practice → revision → mock tests</div>
+            <div>✓ Include buffer time and spaced repetition</div>
+            <div>✓ Validate every session — no overlaps, no overloading</div>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-ghost" id="back-6" aria-label="Go back to Goals">← Back</button>
+          <button class="btn btn-success btn-lg" id="generate-btn" aria-label="Generate my AI study plan">
+            <span id="gen-text">🚀 Generate My AI Plan</span>
+            <span id="gen-spinner" class="hidden"><div class="spinner"></div> Generating...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+
+<script type="module" src="../js/onboarding.js"></script>
+</body>
+</html>

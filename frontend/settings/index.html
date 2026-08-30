@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — StudyAI</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .settings-grid { display: grid; grid-template-columns: 240px 1fr; gap: var(--space-8); }
+    .settings-nav { position: sticky; top: 88px; }
+    .settings-nav-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); cursor: pointer; font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--text-muted); transition: all var(--transition-fast); border: none; background: none; width: 100%; text-align: left; }
+    .settings-nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+    .settings-nav-item.active { background: var(--primary-bg); color: var(--primary-light); font-weight: var(--font-semibold); }
+    .settings-section { display: none; }
+    .settings-section.active { display: block; animation: fadeUp 0.3s ease; }
+    .setting-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-4) 0; border-bottom: 1px solid var(--border-subtle); }
+    .setting-item:last-child { border-bottom: none; }
+    .setting-info { flex: 1; }
+    .setting-label { font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--text-primary); }
+    .setting-desc { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+    .theme-selector { display: flex; gap: var(--space-2); }
+    .theme-option { padding: var(--space-2) var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--bg-card); cursor: pointer; font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--text-secondary); transition: all var(--transition-fast); }
+    .theme-option.active, .theme-option:hover { border-color: var(--primary); color: var(--primary-light); background: var(--primary-bg); }
+    @media (max-width: 768px) { .settings-grid { grid-template-columns: 1fr; } .settings-nav { position: static; } }
+  </style>
+</head>
+<body>
+<nav class="nav" role="navigation"><button id="sidebar-toggle" class="btn btn-icon" aria-label="Toggle sidebar">☰</button><a href="../dashboard/index.html" class="nav-logo"><div class="nav-logo-icon">🎓</div><span class="nav-logo-text">StudyAI</span></a></nav>
+<aside class="sidebar" role="navigation"><div class="sidebar-section">Main</div><a href="../dashboard/index.html" class="sidebar-item"><span>🏠</span> Dashboard</a><a href="../planner/index.html" class="sidebar-item"><span>📅</span> Planner</a><a href="../calendar/index.html" class="sidebar-item"><span>🗓️</span> Calendar</a><a href="../focus/index.html" class="sidebar-item"><span>⏱️</span> Focus Mode</a><div class="sidebar-section">Academic</div><a href="../subjects/index.html" class="sidebar-item"><span>📚</span> Subjects & Topics</a><a href="../progress/index.html" class="sidebar-item"><span>📊</span> Progress</a><div class="sidebar-section">AI</div><a href="../ai-chat/index.html" class="sidebar-item"><span>💬</span> AI Assistant</a><a href="index.html" class="sidebar-item active" aria-current="page"><span>⚙️</span> Settings</a><button class="sidebar-item" data-logout><span>🚪</span> Logout</button></aside>
+
+<main class="page-with-sidebar" role="main">
+  <div class="page-header">
+    <h1 class="page-title">Settings ⚙️</h1>
+    <p class="text-secondary text-sm mt-1">Manage your account, preferences, and study settings</p>
+  </div>
+
+  <div class="settings-grid">
+    <!-- Nav -->
+    <nav class="settings-nav" role="navigation" aria-label="Settings sections">
+      <div id="settings-nav">
+        <button class="settings-nav-item active" data-section="profile" aria-selected="true">👤 Profile</button>
+        <button class="settings-nav-item" data-section="preferences" aria-selected="false">⚙️ Study Preferences</button>
+        <button class="settings-nav-item" data-section="theme" aria-selected="false">🎨 Appearance</button>
+        <button class="settings-nav-item" data-section="notifications" aria-selected="false">🔔 Notifications</button>
+        <button class="settings-nav-item" data-section="danger" aria-selected="false">⚠️ Account</button>
+      </div>
+    </nav>
+
+    <!-- Content -->
+    <div>
+      <!-- Profile -->
+      <section class="settings-section active card" id="section-profile" aria-label="Profile settings">
+        <h2 class="font-bold mb-6" style="color:var(--text-primary);font-size:var(--text-xl)">Profile Information</h2>
+        <div class="flex items-center gap-6 mb-8">
+          <div class="avatar avatar-xl" id="profile-avatar" aria-label="Profile avatar">S</div>
+          <div>
+            <div class="font-bold text-lg" id="profile-name" style="color:var(--text-primary)">Loading...</div>
+            <div class="text-sm text-muted" id="profile-email"></div>
+          </div>
+        </div>
+        <form id="profile-form" aria-label="Update profile">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-4)">
+            <div class="form-group">
+              <label class="form-label" for="p-name">Full Name</label>
+              <input type="text" id="p-name" class="form-input" aria-required="true">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-college">College</label>
+              <input type="text" id="p-college" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-year">Academic Year</label>
+              <input type="text" id="p-year" class="form-input" placeholder="e.g. 2nd Year">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-board">Board/University</label>
+              <input type="text" id="p-board" class="form-input">
+            </div>
+            <div class="form-group" style="grid-column:1/-1">
+              <label class="form-label" for="p-goals">Academic Goals</label>
+              <textarea id="p-goals" class="form-input" rows="3" style="resize:vertical"></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="save-profile-btn">Save Changes</button>
+        </form>
+      </section>
+
+      <!-- Preferences -->
+      <section class="settings-section card" id="section-preferences" aria-label="Study preferences">
+        <h2 class="font-bold mb-6" style="color:var(--text-primary);font-size:var(--text-xl)">Study Preferences</h2>
+        <form id="preferences-form" aria-label="Study preferences form">
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">Daily Study Hours</div>
+              <div class="setting-desc">Target study hours per day: <strong id="pref-hours-display">4</strong>h</div>
+            </div>
+            <input type="range" class="form-range" id="pref-hours" min="1" max="12" step="0.5" value="4" style="width:160px" aria-label="Daily study hours">
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">Preferred Study Time</div>
+              <div class="setting-desc">When do you prefer to study?</div>
+            </div>
+            <select id="pref-time" class="form-input form-select" style="width:auto" aria-label="Preferred study time">
+              <option value="morning">🌅 Morning</option>
+              <option value="afternoon">☀️ Afternoon</option>
+              <option value="evening">🌆 Evening</option>
+              <option value="night">🌙 Night</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">Break Duration</div>
+              <div class="setting-desc">Time between study sessions</div>
+            </div>
+            <select id="pref-break" class="form-input form-select" style="width:auto" aria-label="Break duration">
+              <option value="10">10 min</option>
+              <option value="15">15 min</option>
+              <option value="20">20 min</option>
+              <option value="30">30 min</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">Weekend Study</div>
+              <div class="setting-desc">Study on weekends?</div>
+            </div>
+            <label class="toggle" aria-label="Weekend study toggle">
+              <input type="checkbox" id="pref-weekend" checked>
+              <div class="toggle-slider"></div>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">Exam Reminder Days</div>
+              <div class="setting-desc">Days before exam to intensify sessions</div>
+            </div>
+            <select id="pref-exam-reminder" class="form-input form-select" style="width:auto" aria-label="Exam reminder days">
+              <option value="3">3 days</option>
+              <option value="5">5 days</option>
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+            </select>
+          </div>
+          <div class="mt-6">
+            <button type="submit" class="btn btn-primary">Save Preferences</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Appearance -->
+      <section class="settings-section card" id="section-theme" aria-label="Appearance settings">
+        <h2 class="font-bold mb-6" style="color:var(--text-primary);font-size:var(--text-xl)">Appearance</h2>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Theme</div>
+            <div class="setting-desc">Choose your preferred color scheme</div>
+          </div>
+          <div class="theme-selector" role="group" aria-label="Theme selection">
+            <button class="theme-option" data-theme-btn="light" aria-label="Light mode">☀️ Light</button>
+            <button class="theme-option" data-theme-btn="dark" aria-label="Dark mode">🌙 Dark</button>
+            <button class="theme-option active" data-theme-btn="system" aria-label="System mode">💻 System</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Notifications -->
+      <section class="settings-section card" id="section-notifications" aria-label="Notification settings">
+        <h2 class="font-bold mb-6" style="color:var(--text-primary);font-size:var(--text-xl)">Notifications</h2>
+        <div class="setting-item">
+          <div class="setting-info"><div class="setting-label">Browser Notifications</div><div class="setting-desc">Study session reminders</div></div>
+          <label class="toggle" aria-label="Browser notifications toggle"><input type="checkbox" id="notif-browser" checked><div class="toggle-slider"></div></label>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info"><div class="setting-label">Daily Summary</div><div class="setting-desc">Morning plan overview notification</div></div>
+          <label class="toggle" aria-label="Daily summary toggle"><input type="checkbox" id="notif-summary" checked><div class="toggle-slider"></div></label>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info"><div class="setting-label">Exam Alerts</div><div class="setting-desc">Warnings when exam is approaching</div></div>
+          <label class="toggle" aria-label="Exam alerts toggle"><input type="checkbox" id="notif-exam" checked><div class="toggle-slider"></div></label>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info"><div class="setting-label">Streak Reminders</div><div class="setting-desc">Alerts if you haven't studied today</div></div>
+          <label class="toggle" aria-label="Streak reminders toggle"><input type="checkbox" id="notif-streak" checked><div class="toggle-slider"></div></label>
+        </div>
+        <div class="mt-4">
+          <button class="btn btn-primary" id="save-notif-btn">Save Notification Settings</button>
+          <button class="btn btn-secondary ml-3" id="test-notif-btn">Test Notification</button>
+        </div>
+      </section>
+
+      <!-- Account / Danger zone -->
+      <section class="settings-section card" id="section-danger" aria-label="Account management">
+        <h2 class="font-bold mb-6" style="color:var(--text-primary);font-size:var(--text-xl)">Account Management</h2>
+        <div class="setting-item">
+          <div class="setting-info"><div class="setting-label" style="color:var(--danger)">Delete Account</div><div class="setting-desc">Permanently delete your account and all data. This cannot be undone.</div></div>
+          <button class="btn btn-danger btn-sm" id="delete-account-btn" aria-label="Delete account">Delete Account</button>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info"><div class="setting-label">Sign Out</div><div class="setting-desc">Sign out of your account on this device.</div></div>
+          <button class="btn btn-secondary btn-sm" data-logout>Sign Out</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+<script type="module" src="../js/settings.js"></script>
+</body>
+</html>

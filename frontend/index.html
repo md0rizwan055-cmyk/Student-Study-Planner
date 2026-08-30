@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyAI — Intelligent Academic Planner</title>
+  <meta name="description" content="AI-powered study planner that creates personalized, adaptive timetables to help students study smarter and achieve their academic goals.">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    /* ── HERO ─────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Floating particles */
+    .particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      opacity: 0;
+      animation: particleFloat linear infinite;
+    }
+
+    /* Nav */
+    .landing-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 72px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: var(--z-sticky);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--space-8);
+      gap: var(--space-4);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-left: var(--space-8);
+    }
+    .nav-link {
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+      font-weight: var(--font-medium);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-fast);
+    }
+    .nav-link:hover { color: var(--text-primary); background: var(--bg-card); }
+    .nav-actions { margin-left: auto; display: flex; align-items: center; gap: var(--space-3); }
+
+    /* Hero content */
+    .hero-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px var(--space-6) var(--space-16);
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: var(--primary-bg);
+      border: 1px solid rgba(0, 245, 160, 0.35);
+      box-shadow: 0 0 24px rgba(0, 245, 160, 0.2);
+      border-radius: var(--radius-full);
+      padding: var(--space-2) var(--space-4);
+      font-size: var(--text-sm);
+      color: var(--primary-light);
+      font-weight: var(--font-semibold);
+      margin-bottom: var(--space-6);
+      animation: fadeDown 0.6s ease forwards;
+    }
+
+    .hero-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      margin-bottom: var(--space-6);
+      animation: fadeUp 0.7s ease 0.1s both;
+    }
+
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, #00f5a0 0%, #38ef7d 30%, #ffb800 70%, #ff8800 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 30px rgba(0, 245, 160, 0.4));
+      animation: gradientShift 5s ease infinite;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: var(--text-secondary);
+      max-width: 620px;
+      margin-bottom: var(--space-10);
+      animation: fadeUp 0.7s ease 0.2s both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.7s ease 0.3s both;
+    }
+
+    /* Feature cards grid */
+    .features {
+      padding: var(--space-24) var(--space-6);
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .features-title {
+      text-align: center;
+      margin-bottom: var(--space-16);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-6);
+    }
+
+    .feature-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      transition: all var(--transition-base);
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg), 0 0 30px var(--ambient-1);
+      border-color: var(--primary);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: var(--space-4);
+      display: block;
+    }
+
+    .feature-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: var(--text-xl);
+      font-weight: var(--font-bold);
+      margin-bottom: var(--space-3);
+      color: var(--text-primary);
+    }
+
+    /* AI Showcase */
+    .ai-showcase {
+      padding: var(--space-24) var(--space-6);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-12);
+      align-items: center;
+    }
+
+    .showcase-mockup {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-3xl);
+      padding: var(--space-6);
+      animation: float 4s ease-in-out infinite;
+      box-shadow: var(--shadow-xl), var(--shadow-glow-aurora);
+    }
+
+    .mockup-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-4);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mockup-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+
+    .mockup-session {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-3) var(--space-4);
+      margin-bottom: var(--space-3);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .mockup-color-dot {
+      width: 10px; height: 40px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+
+    /* Stats banner */
+    .stats-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-6);
+      max-width: 900px;
+      margin: var(--space-16) auto;
+      padding: 0 var(--space-6);
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: var(--text-4xl);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 15px rgba(0, 245, 160, 0.35));
+    }
+
+    /* CTA */
+    .cta-section {
+      padding: var(--space-24) var(--space-6);
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cta-card {
+      background: linear-gradient(135deg, rgba(0, 245, 160, 0.15), rgba(255, 184, 0, 0.12));
+      border: 1px solid rgba(0, 245, 160, 0.3);
+      border-radius: var(--radius-3xl);
+      padding: var(--space-12) var(--space-8);
+      box-shadow: var(--shadow-glow-aurora);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: var(--space-8) var(--space-6);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: var(--text-sm);
+    }
+
+    @media (max-width: 768px) {
+      .showcase-grid { grid-template-columns: 1fr; }
+      .stats-banner { grid-template-columns: repeat(2, 1fr); }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Particles -->
+<div class="particles" id="particles" aria-hidden="true"></div>
+
+<!-- Navigation -->
+<nav class="landing-nav" role="navigation" aria-label="Main navigation">
+  <a href="index.html" class="nav-logo" aria-label="StudyAI Home">
+    <div class="nav-logo-icon" aria-hidden="true">🎓</div>
+    <span class="nav-logo-text">StudyAI</span>
+  </a>
+  <div class="nav-links" role="menubar">
+    <a href="#features" class="nav-link" role="menuitem">Features</a>
+    <a href="#ai-planner" class="nav-link" role="menuitem">AI Planner</a>
+    <a href="#how-it-works" class="nav-link" role="menuitem">How it Works</a>
+  </div>
+  <div class="nav-actions">
+    <div class="flex gap-2" role="group" aria-label="Theme selection">
+      <button class="btn btn-icon" data-theme-btn="light" title="Light mode" aria-label="Light mode">☀️</button>
+      <button class="btn btn-icon" data-theme-btn="dark" title="Dark mode" aria-label="Dark mode">🌙</button>
+      <button class="btn btn-icon" data-theme-btn="system" title="System mode" aria-label="System mode">💻</button>
+    </div>
+    <a href="auth/login.html" class="btn btn-ghost btn-sm" id="login-btn">Login</a>
+    <a href="auth/signup.html" class="btn btn-primary btn-sm" id="signup-btn">Get Started Free</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<main>
+  <section class="hero" aria-labelledby="hero-heading">
+    <div class="hero-content">
+      <div class="hero-badge" aria-label="AI-powered academic assistant">
+        <span>✨</span> AI-Powered Academic Assistant
+      </div>
+
+      <h1 class="hero-title" id="hero-heading">
+        Study Smarter,<br>
+        <span class="gradient-text">Not Harder</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Your intelligent study companion that analyzes your syllabus, exams, and schedule to create a
+        <strong>personalized, adaptive timetable</strong> that actually works — reducing stress and maximizing results.
+      </p>
+
+      <div class="hero-actions">
+        <a href="auth/signup.html" class="btn btn-primary btn-lg" id="get-started-btn">
+          🚀 Get Started Free
+        </a>
+        <a href="auth/login.html" class="btn btn-secondary btn-lg" id="hero-login-btn">
+          Login to Dashboard
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats-banner animate-fade-up" role="region" aria-label="App statistics">
+    <div>
+      <div class="stat-num">50K+</div>
+      <div class="text-sm text-muted">Students Helped</div>
+    </div>
+    <div>
+      <div class="stat-num">94%</div>
+      <div class="text-sm text-muted">Exam Success Rate</div>
+    </div>
+    <div>
+      <div class="stat-num">3x</div>
+      <div class="text-sm text-muted">Study Efficiency</div>
+    </div>
+    <div>
+      <div class="stat-num">0</div>
+      <div class="text-sm text-muted">Stress Added</div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="features" id="features" aria-labelledby="features-heading">
+    <div class="features-title">
+      <h2 id="features-heading">Everything You Need to <span class="gradient-text">Ace Your Exams</span></h2>
+      <p class="text-secondary mt-4" style="max-width:560px;margin:var(--space-4) auto 0">
+        StudyAI brings together smart scheduling, AI assistance, and progress analytics in one beautiful platform.
+      </p>
+    </div>
+
+    <div class="features-grid stagger" role="list">
+      <article class="feature-card" role="listitem">
+        <span class="feature-icon" aria-hidden="true">🤖</span>
+        <h3 class="feature-title">AI-Generated Timetable</h3>
+        <p class="text-secondary text-sm">Analyzes your subjects, topics, exam dates and available time to create a perfectly optimized daily study schedule.</p>
+      </article>
+
+      <article class="feature-card" role="listitem">
+        <span class="feature-icon" aria-hidden="true">🧠</span>
+        <h3 class="feature-title">Smart Priority Engine</h3>
+        <p class="text-secondary text-sm">Automatically prioritizes topics by difficulty, importance, exam proximity and your current progress — so you always study what matters most.</p>
+      </article>
+
+      <article class="feature-card" role="listitem">
+        <span class="feature-icon" aria-hidden="true">🔄</span>
+        <h3 class="feature-title">Adaptive Rescheduling</h3>
+        <p class="text-secondary text-sm">Missed a session? No stress. The AI automatically redistributes incomplete work into your future schedule without overloading you.</p>
+      </article>
+
+      <article class="feature-card" role="listitem">
+        <span class="feature-icon" aria-hidden="true">📊</span>
+        <h3 class="feature-title">Progress Analytics</h3>
+        <p class="text-secondary text-sm">Detailed charts showing syllabus completion, study hours, streaks, and subject-wise readiness scores with actionable insights.</p>
+      </article>
+
+      <article class="feature-card" role="listitem">
+        <span class="feature-icon" aria-hidden="true">💬</span>
+        <h3 class="feature-title">AI Chat Assistant</h3>
+        <p class="text-secondary text-sm">Ask anything — "What should I study today?", "How do I recover from missed sessions?", "Which subject needs most attention?"</p>
+      </article>
+
+      <article class="feature-card" role="listitem">
+        <span class="feature-icon" aria-hidden="true">⏱️</span>
+        <h3 class="feature-title">Focus Mode Timer</h3>
+        <p class="text-secondary text-sm">Distraction-free study sessions with a Pomodoro-style timer, subject display, and post-session feedback that improves future AI recommendations.</p>
+      </article>
+
+      <article class="feature-card" role="listitem">
+        <span class="feature-icon" aria-hidden="true">🗓️</span>
+        <h3 class="feature-title">Smart Calendar</h3>
+        <p class="text-secondary text-sm">Visualize all study sessions, exams, revisions and assignments in an interactive calendar with drag-to-reschedule support.</p>
+      </article>
+
+      <article class="feature-card" role="listitem">
+        <span class="feature-icon" aria-hidden="true">🔁</span>
+        <h3 class="feature-title">Spaced Repetition</h3>
+        <p class="text-secondary text-sm">Automatically schedules revision sessions at scientifically optimized intervals (1, 3, 7, 14 days) to maximize long-term retention.</p>
+      </article>
+
+      <article class="feature-card" role="listitem">
+        <span class="feature-icon" aria-hidden="true">🎯</span>
+        <h3 class="feature-title">Must Study Categorization</h3>
+        <p class="text-secondary text-sm">When syllabus is too large, clearly categorizes topics into Must Study, Should Study, and Optional with full reasoning explained.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- AI Showcase -->
+  <section class="ai-showcase" id="ai-planner" aria-labelledby="ai-heading">
+    <div class="showcase-grid">
+      <div>
+        <div class="hero-badge" style="margin-bottom:var(--space-4)">🤖 AI Planning Engine</div>
+        <h2 id="ai-heading" style="font-size:var(--text-3xl);margin-bottom:var(--space-4)">
+          Your personal<br><span class="gradient-text">academic strategist</span>
+        </h2>
+        <p class="text-secondary" style="margin-bottom:var(--space-6)">
+          The AI engine analyzes 10+ factors including topic difficulty, exam urgency, your study pace,
+          and past performance to generate a realistic schedule you can actually follow.
+        </p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-3)" aria-label="AI engine features">
+          <li class="flex items-center gap-3"><span style="color:var(--success)">✓</span> <span class="text-secondary text-sm">No overlapping sessions — ever</span></li>
+          <li class="flex items-center gap-3"><span style="color:var(--success)">✓</span> <span class="text-secondary text-sm">Respects your class timings & breaks</span></li>
+          <li class="flex items-center gap-3"><span style="color:var(--success)">✓</span> <span class="text-secondary text-sm">Recommends realistic daily study hours</span></li>
+          <li class="flex items-center gap-3"><span style="color:var(--success)">✓</span> <span class="text-secondary text-sm">Prioritizes closer exams automatically</span></li>
+          <li class="flex items-center gap-3"><span style="color:var(--success)">✓</span> <span class="text-secondary text-sm">Validates every plan before saving</span></li>
+        </ul>
+      </div>
+      <div class="showcase-mockup" aria-label="Sample AI-generated timetable" role="img">
+        <div class="mockup-header">
+          <div class="mockup-dot" style="background:#ef4444" aria-hidden="true"></div>
+          <div class="mockup-dot" style="background:#f59e0b" aria-hidden="true"></div>
+          <div class="mockup-dot" style="background:#10b981" aria-hidden="true"></div>
+          <span class="text-sm text-muted ml-auto">Today's AI Plan</span>
+        </div>
+        <div class="mockup-session" aria-label="Mathematics session 9:00 AM">
+          <div class="mockup-color-dot" style="background:linear-gradient(180deg,#7c3aed,#6d28d9)" aria-hidden="true"></div>
+          <div>
+            <div class="text-sm font-semibold">Calculus — Integration</div>
+            <div class="text-xs text-muted">9:00 AM · 60 min · 📖 Learning</div>
+          </div>
+          <span class="badge badge-primary ml-auto">High Priority</span>
+        </div>
+        <div class="mockup-session" aria-label="Physics revision 10:30 AM">
+          <div class="mockup-color-dot" style="background:linear-gradient(180deg,#2563eb,#1d4ed8)" aria-hidden="true"></div>
+          <div>
+            <div class="text-sm font-semibold">Physics — Thermodynamics</div>
+            <div class="text-xs text-muted">10:30 AM · 45 min · ✏️ Practice</div>
+          </div>
+          <span class="badge badge-warning ml-auto">Exam Soon</span>
+        </div>
+        <div class="mockup-session" aria-label="Chemistry revision 12:00 PM">
+          <div class="mockup-color-dot" style="background:linear-gradient(180deg,#059669,#10b981)" aria-hidden="true"></div>
+          <div>
+            <div class="text-sm font-semibold">Chemistry — Organic Rxns</div>
+            <div class="text-xs text-muted">12:00 PM · 35 min · 🔄 Revision</div>
+          </div>
+          <span class="badge badge-success ml-auto">On Track</span>
+        </div>
+        <div class="flex items-center gap-2 mt-4 pt-4" style="border-top:1px solid var(--border)">
+          <div class="text-xs text-muted">AI Recommendation:</div>
+          <div class="text-xs" style="color:var(--primary-light)">✨ Start with Calculus — exam in 5 days!</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section style="padding:var(--space-24) var(--space-6);max-width:1000px;margin:0 auto" id="how-it-works" aria-labelledby="how-heading">
+    <h2 class="text-center mb-8" id="how-heading">Get Started in <span class="gradient-text">4 Simple Steps</span></h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-6);text-align:center" role="list">
+      <div role="listitem">
+        <div style="font-size:2.5rem;margin-bottom:var(--space-3)" aria-hidden="true">📝</div>
+        <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-2)">1. Add Subjects & Topics</h3>
+        <p class="text-secondary text-sm">Enter your subjects, topics, difficulty and exam dates in minutes.</p>
+      </div>
+      <div role="listitem">
+        <div style="font-size:2.5rem;margin-bottom:var(--space-3)" aria-hidden="true">⚙️</div>
+        <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-2)">2. Set Your Schedule</h3>
+        <p class="text-secondary text-sm">Tell the AI your available hours, class timings and preferences.</p>
+      </div>
+      <div role="listitem">
+        <div style="font-size:2.5rem;margin-bottom:var(--space-3)" aria-hidden="true">🤖</div>
+        <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-2)">3. AI Generates Your Plan</h3>
+        <p class="text-secondary text-sm">The AI creates your personalized, optimized timetable instantly.</p>
+      </div>
+      <div role="listitem">
+        <div style="font-size:2.5rem;margin-bottom:var(--space-3)" aria-hidden="true">🏆</div>
+        <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-2)">4. Study & Achieve</h3>
+        <p class="text-secondary text-sm">Follow your plan, track progress and crush your exams!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" aria-labelledby="cta-heading">
+    <div class="cta-card">
+      <h2 id="cta-heading" style="font-size:var(--text-3xl);margin-bottom:var(--space-4)">
+        Ready to transform your<br><span class="gradient-text">study game?</span>
+      </h2>
+      <p class="text-secondary mb-8">Join thousands of students who are studying smarter with AI.</p>
+      <div class="flex gap-4 justify-center flex-wrap">
+        <a href="auth/signup.html" class="btn btn-primary btn-lg" id="cta-signup-btn">
+          🚀 Start for Free
+        </a>
+        <a href="auth/login.html" class="btn btn-secondary btn-lg" id="cta-login-btn">
+          Login
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer role="contentinfo">
+  <p>© 2024 StudyAI — Built to reduce student stress, one session at a time. 🎓</p>
+</footer>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+
+<script type="module">
+  import { initTheme, requireNoAuth, getRoutePath } from './js/app.js';
+
+  initTheme();
+
+  // Redirect logged-in users to dashboard
+  const token = localStorage.getItem('sp_token');
+  if (token) {
+    const dashUrl = getRoutePath('/dashboard/index.html');
+    document.getElementById('get-started-btn').href = dashUrl;
+    document.getElementById('hero-login-btn').href = dashUrl;
+    document.getElementById('login-btn').textContent = 'Dashboard';
+    document.getElementById('login-btn').href = dashUrl;
+    document.getElementById('cta-login-btn').href = dashUrl;
+  }
+
+  // Generate luminous floating particles
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 35; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 5 + 2;
+    const isEmerald = Math.random() > 0.4;
+    const color = isEmerald ? 'rgba(0, 245, 160, 0.7)' : 'rgba(255, 184, 0, 0.7)';
+    const glow = isEmerald ? 'rgba(0, 245, 160, 0.8)' : 'rgba(255, 184, 0, 0.8)';
+    p.style.cssText = `
+      left: ${Math.random() * 100}%;
+      bottom: ${Math.random() * 30}%;
+      width: ${size}px;
+      height: ${size}px;
+      border-radius: 50%;
+      background: ${color};
+      box-shadow: 0 0 ${size * 3}px ${glow};
+      animation-duration: ${Math.random() * 14 + 8}s;
+      animation-delay: ${Math.random() * 8}s;
+      opacity: ${Math.random() * 0.6 + 0.3};
+    `;
+    container.appendChild(p);
+  }
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>

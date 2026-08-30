@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Assistant — StudyAI</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .chat-layout { display: grid; grid-template-columns: 240px 1fr; height: calc(100vh - 64px); margin-top: 64px; }
+    .chat-main { display: flex; flex-direction: column; height: 100%; }
+    .chat-header { padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
+    .chat-input-area { padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); flex-shrink: 0; }
+    .message { display: flex; gap: var(--space-3); max-width: 85%; animation: fadeUp 0.3s ease; }
+    .message.user { align-self: flex-end; flex-direction: row-reverse; }
+    .message-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .message-bubble { padding: var(--space-3) var(--space-4); border-radius: var(--radius-xl); font-size: var(--text-sm); line-height: 1.6; max-width: 100%; }
+    .message.ai .message-bubble { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 4px var(--radius-xl) var(--radius-xl) var(--radius-xl); }
+    .message.user .message-bubble { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; border-radius: var(--radius-xl) 4px var(--radius-xl) var(--radius-xl); }
+    .quick-prompts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
+    .quick-prompt-btn { padding: var(--space-2) var(--space-3); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); font-size: var(--text-xs); cursor: pointer; color: var(--text-secondary); transition: all var(--transition-fast); }
+    .quick-prompt-btn:hover { border-color: var(--primary); color: var(--primary-light); background: var(--primary-bg); }
+    .chat-input-row { display: flex; gap: var(--space-3); }
+    .chat-input { flex: 1; padding: var(--space-3) var(--space-4); background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-xl); color: var(--text-primary); resize: none; height: 52px; }
+    .chat-input:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(0, 245, 160, 0.2), 0 0 15px rgba(0, 245, 160, 0.15); outline: none; }
+    .message-bubble strong { color: inherit; font-weight: 700; }
+    .message-bubble ul, .message-bubble ol { padding-left: 1.2em; margin: 0.5em 0; }
+    .message-bubble li { margin-bottom: 2px; }
+    @media (max-width: 768px) { .chat-layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+  </style>
+</head>
+<body>
+<nav class="nav" role="navigation"><button id="sidebar-toggle" class="btn btn-icon" aria-label="Toggle sidebar">☰</button><a href="../dashboard/index.html" class="nav-logo"><div class="nav-logo-icon">🎓</div><span class="nav-logo-text">StudyAI</span></a></nav>
+<div class="chat-layout">
+  <aside class="sidebar" role="navigation" aria-label="Main navigation"><div class="sidebar-section">Main</div><a href="../dashboard/index.html" class="sidebar-item"><span>🏠</span> Dashboard</a><a href="../planner/index.html" class="sidebar-item"><span>📅</span> Planner</a><a href="../calendar/index.html" class="sidebar-item"><span>🗓️</span> Calendar</a><a href="../focus/index.html" class="sidebar-item"><span>⏱️</span> Focus Mode</a><div class="sidebar-section">Academic</div><a href="../subjects/index.html" class="sidebar-item"><span>📚</span> Subjects & Topics</a><a href="../progress/index.html" class="sidebar-item"><span>📊</span> Progress</a><div class="sidebar-section">AI</div><a href="index.html" class="sidebar-item active" aria-current="page"><span>💬</span> AI Assistant</a><a href="../settings/index.html" class="sidebar-item"><span>⚙️</span> Settings</a><button class="sidebar-item" data-logout><span>🚪</span> Logout</button></aside>
+
+  <main class="chat-main" role="main">
+    <div class="chat-header">
+      <div class="flex items-center gap-3">
+        <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px" aria-hidden="true">🤖</div>
+        <div>
+          <div class="font-semibold" style="color:var(--text-primary)">StudyAI Assistant</div>
+          <div class="text-xs text-muted">🟢 Online · Powered by your study data</div>
+        </div>
+        <button class="btn btn-secondary btn-sm ml-auto" id="clear-chat" aria-label="Clear chat history">Clear Chat</button>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages" role="log" aria-label="Chat messages" aria-live="polite">
+      <!-- Welcome message -->
+      <div class="message ai" role="article" aria-label="AI message">
+        <div class="message-avatar" style="background:linear-gradient(135deg,var(--primary),var(--secondary))" aria-hidden="true">🤖</div>
+        <div class="message-bubble">
+          <strong>Hi there! 👋 I'm your AI study assistant.</strong><br><br>
+          I have access to your complete study plan, subjects, topics, exam dates, and progress data. Ask me anything about your academics!<br><br>
+          Here are some things I can help with:
+          <ul>
+            <li>📖 <strong>Today's plan</strong> — What should I study today?</li>
+            <li>🔄 <strong>Recovery</strong> — I missed sessions, help me catch up</li>
+            <li>🎯 <strong>Priorities</strong> — Which subject needs most attention?</li>
+            <li>📅 <strong>Revision</strong> — Create a revision schedule</li>
+            <li>⏰ <strong>Exams</strong> — How ready am I for my exams?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="quick-prompts" role="group" aria-label="Quick prompts">
+        <button class="quick-prompt-btn" data-prompt="What should I study today?" aria-label="What should I study today">📖 What to study today?</button>
+        <button class="quick-prompt-btn" data-prompt="I missed several sessions. Help me recover and create a catch-up plan." aria-label="Help me recover from missed sessions">🔄 Help me recover</button>
+        <button class="quick-prompt-btn" data-prompt="Which subject needs my most urgent attention right now?" aria-label="Which subject needs attention">🎯 Subject priority</button>
+        <button class="quick-prompt-btn" data-prompt="Give me a revision plan for my upcoming exams." aria-label="Create revision plan">📅 Revision plan</button>
+        <button class="quick-prompt-btn" data-prompt="Give me a study tip to improve my productivity." aria-label="Study tip">💡 Study tip</button>
+      </div>
+      <div class="chat-input-row">
+        <textarea
+          class="chat-input"
+          id="chat-input"
+          placeholder="Ask me anything about your studies..."
+          rows="1"
+          aria-label="Chat message input"
+          aria-describedby="send-hint"
+        ></textarea>
+        <button class="btn btn-primary" id="send-btn" style="height:52px;padding:0 var(--space-5)" aria-label="Send message">
+          <span id="send-text">Send ↑</span>
+          <span id="send-spinner" class="hidden"><div class="spinner"></div></span>
+        </button>
+      </div>
+      <div class="text-xs text-muted mt-2" id="send-hint">Press Enter to send · Shift+Enter for new line</div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+<script type="module" src="../js/ai-chat.js"></script>
+</body>
+</html>

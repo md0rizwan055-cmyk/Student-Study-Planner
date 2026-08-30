@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — StudyAI</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
+    .dash-main { display: grid; grid-template-columns: 1fr 340px; gap: var(--space-6); }
+    .exam-card { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); margin-bottom: var(--space-3); }
+    .exam-countdown { font-family: 'Outfit', sans-serif; font-size: var(--text-2xl); font-weight: 900; line-height: 1; }
+    .session-card-dash { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-4); display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); transition: all var(--transition-fast); cursor: pointer; }
+    .session-card-dash:hover { border-color: var(--primary); background: var(--bg-card-hover); }
+    .session-color-bar { width: 4px; height: 40px; border-radius: var(--radius-full); flex-shrink: 0; }
+    .ai-rec-item { padding: var(--space-3); background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: var(--space-2); font-size: var(--text-sm); }
+    .ring-chart { position: relative; display: flex; align-items: center; justify-content: center; }
+    .ring-center { position: absolute; text-align: center; }
+    @media (max-width: 1100px) { .dash-grid { grid-template-columns: repeat(2, 1fr); } .dash-main { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .dash-grid { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+<!-- Sidebar -->
+<nav class="nav" role="navigation" aria-label="Top navigation">
+  <button id="sidebar-toggle" class="btn btn-icon" aria-label="Toggle sidebar">☰</button>
+  <a href="index.html" class="nav-logo"><div class="nav-logo-icon">🎓</div><span class="nav-logo-text">StudyAI</span></a>
+  <div class="ml-auto flex items-center gap-3">
+    <button class="btn btn-icon" id="notif-btn" aria-label="Notifications"><span>🔔</span><span id="notif-badge" class="hidden" style="position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700"></span></button>
+    <div style="position:relative">
+      <button class="avatar avatar-md" id="user-menu-btn" aria-label="User menu" data-user-avatar>S</button>
+    </div>
+  </div>
+</nav>
+
+<aside class="sidebar" role="navigation" aria-label="Main navigation">
+  <div class="sidebar-section">Main</div>
+  <a href="index.html" class="sidebar-item active" aria-current="page"><span>🏠</span> Dashboard</a>
+  <a href="../planner/index.html" class="sidebar-item"><span>📅</span> Planner</a>
+  <a href="../calendar/index.html" class="sidebar-item"><span>🗓️</span> Calendar</a>
+  <a href="../focus/index.html" class="sidebar-item"><span>⏱️</span> Focus Mode</a>
+  <div class="sidebar-section">Academic</div>
+  <a href="../subjects/index.html" class="sidebar-item"><span>📚</span> Subjects & Topics</a>
+  <a href="../progress/index.html" class="sidebar-item"><span>📊</span> Progress</a>
+  <div class="sidebar-section">AI</div>
+  <a href="../ai-chat/index.html" class="sidebar-item"><span>💬</span> AI Assistant</a>
+  <div class="sidebar-section" style="margin-top:auto">Account</div>
+  <a href="../settings/index.html" class="sidebar-item"><span>⚙️</span> Settings</a>
+  <button class="sidebar-item" data-logout><span>🚪</span> Logout</button>
+</aside>
+
+<main class="page-with-sidebar" role="main">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="page-title" id="greeting-text">Good morning! 👋</h1>
+        <p class="text-secondary text-sm mt-1" id="greeting-sub">Here's your study plan for today.</p>
+      </div>
+      <div class="flex gap-3">
+        <button class="btn btn-secondary" id="redistribute-btn" aria-label="Redistribute missed sessions">🔄 Sync Missed</button>
+        <a href="../planner/index.html" class="btn btn-primary" aria-label="View full planner">📅 Full Planner</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <section class="dash-grid stagger" aria-label="Today's stats" role="region">
+    <div class="stat-card animate-fade-up">
+      <div class="stat-icon" style="background:var(--primary-bg)">📖</div>
+      <div class="stat-value" id="stat-hours">--</div>
+      <div class="stat-label">Study Hours Today</div>
+    </div>
+    <div class="stat-card animate-fade-up">
+      <div class="stat-icon" style="background:var(--success-bg)">✅</div>
+      <div class="stat-value" id="stat-completed">--</div>
+      <div class="stat-label">Sessions Completed</div>
+    </div>
+    <div class="stat-card animate-fade-up">
+      <div class="stat-icon" style="background:var(--warning-bg)">📋</div>
+      <div class="stat-value" id="stat-remaining">--</div>
+      <div class="stat-label">Sessions Remaining</div>
+    </div>
+    <div class="stat-card animate-fade-up">
+      <div class="stat-icon" style="background:var(--accent-bg)">🔥</div>
+      <div class="stat-value" id="stat-streak">--</div>
+      <div class="stat-label">Day Streak</div>
+    </div>
+  </section>
+
+  <!-- Main layout -->
+  <div class="dash-main">
+    <!-- Left: Today's timetable -->
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 style="font-size:var(--text-xl);font-weight:700">📅 Today's Sessions</h2>
+        <span class="text-sm text-muted" id="today-date"></span>
+      </div>
+
+      <div id="today-sessions" role="list" aria-label="Today's study sessions" aria-live="polite">
+        <!-- Skeleton -->
+        <div class="skeleton skeleton-card" style="height:80px;margin-bottom:12px"></div>
+        <div class="skeleton skeleton-card" style="height:80px;margin-bottom:12px"></div>
+        <div class="skeleton skeleton-card" style="height:80px"></div>
+      </div>
+
+      <!-- AI Recommendations -->
+      <div class="card mt-6">
+        <div class="flex items-center gap-3 mb-4">
+          <span style="font-size:1.25rem">🤖</span>
+          <h3 style="font-size:var(--text-base);font-weight:700;color:var(--text-primary)">AI Recommendations</h3>
+          <button class="btn btn-ghost btn-sm ml-auto" id="refresh-rec" aria-label="Refresh recommendations">↻</button>
+        </div>
+        <div id="ai-recommendations" aria-live="polite">
+          <div class="skeleton skeleton-text" style="margin-bottom:8px"></div>
+          <div class="skeleton skeleton-text sm" style="margin-bottom:8px"></div>
+          <div class="skeleton skeleton-text xs"></div>
+        </div>
+        <div class="mt-4 pt-4" style="border-top:1px solid var(--border)">
+          <div class="text-xs text-muted mb-2">💡 Study Tip</div>
+          <div id="study-tip" class="text-sm text-secondary"></div>
+        </div>
+      </div>
+
+      <!-- Overall Progress -->
+      <div class="card mt-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 style="font-size:var(--text-base);font-weight:700;color:var(--text-primary)">📊 Overall Progress</h3>
+          <a href="../progress/index.html" class="text-sm" style="color:var(--primary-light)">View Details →</a>
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="ring-chart" style="width:100px;height:100px" aria-label="Overall completion percentage">
+            <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" stroke-width="8"/>
+              <circle id="progress-ring" cx="50" cy="50" r="40" fill="none" stroke="url(#grad)" stroke-width="8"
+                stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"
+                transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 1.5s ease"/>
+              <defs>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#00f5a0"/>
+                  <stop offset="100%" style="stop-color:#ffb800"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="ring-center">
+              <div style="font-family:'Outfit',sans-serif;font-size:var(--text-lg);font-weight:800;color:var(--text-primary)" id="ring-pct">0%</div>
+            </div>
+          </div>
+          <div style="flex:1">
+            <div id="subject-progress-bars">
+              <div class="skeleton skeleton-text" style="margin-bottom:8px"></div>
+              <div class="skeleton skeleton-text" style="margin-bottom:8px"></div>
+              <div class="skeleton skeleton-text"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Exams & Quick Actions -->
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 style="font-size:var(--text-xl);font-weight:700">⏰ Upcoming Exams</h2>
+      </div>
+      <div id="upcoming-exams" aria-label="Upcoming exams" aria-live="polite">
+        <div class="skeleton skeleton-card" style="height:90px;margin-bottom:12px"></div>
+        <div class="skeleton skeleton-card" style="height:90px"></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card mt-6">
+        <h3 class="font-semibold mb-4" style="color:var(--text-primary)">⚡ Quick Actions</h3>
+        <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+          <a href="../focus/index.html" class="btn btn-primary w-full">⏱ Start Focus Session</a>
+          <a href="../subjects/index.html" class="btn btn-secondary w-full">📚 Manage Subjects</a>
+          <button class="btn btn-secondary w-full" id="regen-plan-btn" aria-label="Regenerate study plan">🔄 Regenerate Plan</button>
+          <a href="../ai-chat/index.html" class="btn btn-secondary w-full">💬 Chat with AI</a>
+        </div>
+      </div>
+
+      <!-- Motivational card -->
+      <div class="card mt-4" style="background:linear-gradient(135deg,rgba(0,245,160,0.12),rgba(255,184,0,0.08));border-color:rgba(0,245,160,0.25);box-shadow:0 0 25px rgba(0,245,160,0.12)">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2)">✨</div>
+        <p class="text-sm" style="color:var(--text-primary);font-weight:var(--font-medium)" id="motivational-msg">
+          Consistency is the key to mastery. Stay on track!
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+
+<script type="module" src="../js/dashboard.js"></script>
+</body>
+</html>
