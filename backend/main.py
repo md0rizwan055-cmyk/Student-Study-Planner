@@ -1,3 +1,10 @@
+import sys
+import os
+
+# Ensure backend directory is in Python path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from typing import Any, cast
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -27,7 +34,7 @@ app = FastAPI(
 )
 
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler))
 
 ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500",
@@ -36,6 +43,8 @@ ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
 ]
 if FRONTEND_ORIGIN and FRONTEND_ORIGIN not in ALLOWED_ORIGINS:
     ALLOWED_ORIGINS.append(FRONTEND_ORIGIN)
@@ -43,7 +52,7 @@ if FRONTEND_ORIGIN and FRONTEND_ORIGIN not in ALLOWED_ORIGINS:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origin_regex=r"^https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -68,7 +77,11 @@ async def health():
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+    import traceback
+    import logging
+    logging.error(f"Unhandled Exception on {request.method} {request.url}: {exc}")
+    traceback.print_exc()
+    return JSONResponse(status_code=500, content={"detail": f"Internal server error: {str(exc)}"})
 
 
 if __name__ == "__main__":

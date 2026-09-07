@@ -89,9 +89,11 @@ function renderSubjects(list) {
     `;
     container.appendChild(card);
   });
+}
 
-  // Event delegation
-  container.addEventListener('click', handleContainerClick);
+const subjectsContainer = document.getElementById('subjects-container');
+if (subjectsContainer) {
+  subjectsContainer.addEventListener('click', handleContainerClick);
 }
 
 async function handleContainerClick(e) {
@@ -147,6 +149,62 @@ document.getElementById('color-picker')?.addEventListener('click', e => {
 document.getElementById('add-subject-btn')?.addEventListener('click', () => openSubjectModal());
 document.getElementById('close-subject-modal')?.addEventListener('click', () => document.getElementById('subject-modal').classList.add('hidden'));
 document.getElementById('cancel-subject')?.addEventListener('click', () => document.getElementById('subject-modal').classList.add('hidden'));
+
+document.getElementById('ai-gen-topics-btn')?.addEventListener('click', async () => {
+  const name = document.getElementById('s-name').value.trim();
+  if (!name) {
+    toast.warning('Subject Name Required', 'Please enter a subject name (e.g. Mathematics, Quantum Physics, Machine Learning).');
+    document.getElementById('s-name').focus();
+    return;
+  }
+
+  const btn = document.getElementById('ai-gen-topics-btn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '🤖 AI Querying...';
+
+  try {
+    toast.info('Querying AI Pipeline', `Fetching curriculum & topic breakdown for "${name}"...`);
+    const res = await api.generateTopics(name, document.getElementById('s-exam').value);
+
+    // Create subject if not editing
+    let subj;
+    if (editingSubjectId) {
+      subj = await api.updateSubject(editingSubjectId, { name: res.subject_name || name, color: res.color || selectedColor });
+    } else {
+      subj = await api.createSubject({
+        name: res.subject_name || name,
+        color: res.color || selectedColor,
+        exam_date: document.getElementById('s-exam').value || null,
+        total_marks: parseInt(document.getElementById('s-marks').value) || 100
+      });
+    }
+
+    // Add generated topics
+    if (res.topics && res.topics.length) {
+      for (const t of res.topics) {
+        await api.createTopic({
+          subject_id: subj.id,
+          name: t.name,
+          difficulty: t.difficulty || 3,
+          importance: t.importance || 4,
+          estimated_hours: t.estimated_hours || 6,
+          current_progress: 0,
+          notes: t.notes || null
+        });
+      }
+    }
+
+    document.getElementById('subject-modal').classList.add('hidden');
+    toast.success('✨ AI Generation Complete!', `Added "${subj.name}" with ${res.topics?.length || 0} topics.`);
+    await loadSubjects();
+  } catch (err) {
+    toast.error('AI Generation Error', err.message || 'Failed to generate topics.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+});
 
 document.getElementById('subject-form')?.addEventListener('submit', async e => {
   e.preventDefault();

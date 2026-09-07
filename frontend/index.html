@@ -544,19 +544,33 @@
 <div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
 
 <script type="module">
-  import { initTheme, requireNoAuth, getRoutePath } from './js/app.js';
+  import { initTheme, getRoutePath } from './js/app.js';
+  import { getToken, getUser } from './js/api.js';
 
   initTheme();
 
-  // Redirect logged-in users to dashboard
-  const token = localStorage.getItem('sp_token');
-  if (token) {
+  // If logged in, update login button to point to dashboard, while keeping "Get Started" for new user sign-up
+  const token = getToken();
+  const user = getUser();
+  if (token && user) {
     const dashUrl = getRoutePath('/dashboard/index.html');
-    document.getElementById('get-started-btn').href = dashUrl;
-    document.getElementById('hero-login-btn').href = dashUrl;
-    document.getElementById('login-btn').textContent = 'Dashboard';
-    document.getElementById('login-btn').href = dashUrl;
-    document.getElementById('cta-login-btn').href = dashUrl;
+    // Keep 1st button as "Get Started" pointing to signup (for new users to sign up)
+    // Update the 2nd/login buttons to open the dashboard
+    const heroLoginBtn = document.getElementById('hero-login-btn');
+    if (heroLoginBtn) {
+      heroLoginBtn.href = dashUrl;
+      heroLoginBtn.textContent = 'Open Dashboard';
+    }
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+      loginBtn.href = dashUrl;
+      loginBtn.textContent = 'Dashboard';
+    }
+    const ctaLoginBtn = document.getElementById('cta-login-btn');
+    if (ctaLoginBtn) {
+      ctaLoginBtn.href = dashUrl;
+      ctaLoginBtn.textContent = 'Open Dashboard';
+    }
   }
 
   // Generate luminous floating particles

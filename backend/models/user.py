@@ -41,11 +41,38 @@ class StudyPreferences(BaseModel):
     exam_reminder_days: int = Field(default=7, ge=1, le=30)
     theme: str = Field(default="system")  # light/dark/system
 
+    @field_validator("daily_study_hours", mode="before")
+    @classmethod
+    def validate_daily_hours(cls, v: Any):
+        if v is None or v == "":
+            return 4.0
+        try:
+            return max(0.5, min(16.0, float(v)))
+        except (ValueError, TypeError):
+            return 4.0
+
+    @field_validator("break_duration_minutes", "exam_reminder_days", mode="before")
+    @classmethod
+    def validate_ints(cls, v: Any):
+        if v is None or v == "":
+            return 15
+        try:
+            return int(v)
+        except (ValueError, TypeError):
+            return 15
+
 
 class ClassTiming(BaseModel):
     day: str  # monday/tuesday/...
-    start_time: str  # "09:00"
-    end_time: str  # "16:00"
+    start_time: str = "09:00"  # "09:00"
+    end_time: str = "17:00"  # "16:00"
+
+    @field_validator("day", "start_time", "end_time", mode="before")
+    @classmethod
+    def validate_timing_strs(cls, v: Any):
+        if v is None:
+            return ""
+        return str(v).strip()
 
 
 class OnboardingData(BaseModel):
@@ -56,6 +83,13 @@ class OnboardingData(BaseModel):
     existing_commitments: Optional[str] = None
     class_timings: Optional[List[ClassTiming]] = []
     preferences: Optional[StudyPreferences] = None
+
+    @field_validator("college", "academic_year", "board_university", "goals", "existing_commitments", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, v: Any):
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return None
+        return str(v).strip()
 
 
 class UserResponse(BaseModel):

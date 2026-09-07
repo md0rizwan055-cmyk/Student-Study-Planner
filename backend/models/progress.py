@@ -50,3 +50,5 @@ class AnalyticsResponse(BaseModel):
     weekly_hours: List[WeeklyHours]
     streak_data: List[StreakData]
     completion_trend: List[dict]
+
+

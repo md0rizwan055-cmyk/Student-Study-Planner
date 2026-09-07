@@ -229,6 +229,35 @@
           <div class="form-error hidden" id="email-error" role="alert"></div>
         </div>
 
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">
+          <div class="form-group">
+            <label class="form-label" for="university">University Name</label>
+            <div class="input-group">
+              <span class="input-icon" aria-hidden="true">🏫</span>
+              <input
+                type="text" id="university" name="university"
+                class="form-input" placeholder="e.g. IIT Delhi"
+                autocomplete="organization"
+                aria-describedby="university-error"
+              >
+            </div>
+            <div class="form-error hidden" id="university-error" role="alert"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="course">Course / Degree</label>
+            <div class="input-group">
+              <span class="input-icon" aria-hidden="true">📖</span>
+              <input
+                type="text" id="course" name="course"
+                class="form-input" placeholder="e.g. B.Tech CSE"
+                aria-describedby="course-error"
+              >
+            </div>
+            <div class="form-error hidden" id="course-error" role="alert"></div>
+          </div>
+        </div>
+
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
           <div class="input-group icon-right">
@@ -265,7 +294,7 @@
             <button type="button" class="input-icon-right" id="toggle-confirm"
               aria-label="Toggle password visibility">👁</button>
           </div>
-          <div class="form-error hidden" id="confirm-error" role="alert"></div>
+          <div class="form-error hidden" id="confirm-password-error" role="alert"></div>
         </div>
 
         <button type="submit" class="btn btn-primary w-full" id="submit-btn"

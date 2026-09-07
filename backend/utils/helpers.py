@@ -22,18 +22,39 @@ def str_to_id(obj_id) -> str:
     return str(obj_id)
 
 
-def calculate_days_to_exam(exam_date) -> Optional[int]:
-    if not exam_date:
+def parse_date_safe(val) -> Optional[date]:
+    """Safely parse various date formats (date, datetime, ISO strings with Z/T/offset, or YYYY-MM-DD)."""
+    if not val:
         return None
-    if isinstance(exam_date, str):
-        try:
-            exam_date = date.fromisoformat(exam_date[:10])
-        except ValueError:
+    if isinstance(val, date) and not isinstance(val, datetime):
+        return val
+    if isinstance(val, datetime):
+        return val.date()
+    if isinstance(val, str):
+        val = val.strip()
+        if not val:
             return None
-    elif isinstance(exam_date, datetime):
-        exam_date = exam_date.date()
+        # Try YYYY-MM-DD prefix first
+        try:
+            return date.fromisoformat(val[:10])
+        except ValueError:
+            pass
+        # Try full datetime string
+        try:
+            cleaned = val.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(cleaned)
+            return dt.date()
+        except Exception:
+            return None
+    return None
+
+
+def calculate_days_to_exam(exam_date) -> Optional[int]:
+    parsed = parse_date_safe(exam_date)
+    if not parsed:
+        return None
     today = date.today()
-    delta = exam_date - today
+    delta = parsed - today
     return delta.days
 
 

@@ -24,7 +24,11 @@ const SUBJECT_COLORS = [
 
 const state = {
   // Step 1
-  college: '', academic_year: '', board_university: '',
+  name: user?.name || '',
+  email: user?.email || '',
+  college: user?.college || '',
+  academic_year: user?.academic_year || '',
+  board_university: user?.board_university || '',
   // Step 2 & 3: subjects and topics nested
   subjects: [
     {
@@ -46,6 +50,20 @@ const state = {
   goals: '',
   existing_commitments: '',
 };
+
+// Pre-fill input elements with user data if available
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initStep1Inputs);
+} else {
+  initStep1Inputs();
+}
+
+function initStep1Inputs() {
+  const nameEl = document.getElementById('student-name');
+  const emailEl = document.getElementById('student-email');
+  if (nameEl && state.name) nameEl.value = state.name;
+  if (emailEl && state.email) emailEl.value = state.email;
+}
 
 // ── NAVIGATION ─────────────────────────────────────────────────
 function goToStep(step) {
@@ -95,6 +113,13 @@ document.getElementById('back-6')?.addEventListener('click', () => goToStep(5));
 
 // ── VALIDATION ─────────────────────────────────────────────────
 function validateStep(step) {
+  if (step === 1) {
+    if (!state.name || !state.name.trim()) {
+      toast.warning('Name Required', 'Please enter your name to continue.');
+      document.getElementById('student-name')?.focus();
+      return false;
+    }
+  }
   if (step === 2) {
     const validSubjects = state.subjects.filter(s => s && s.name && s.name.trim());
     if (validSubjects.length === 0) {
@@ -116,6 +141,8 @@ function validateStep(step) {
 }
 
 // ── STEP 1 — collect on change ─────────────────────────────────
+document.getElementById('student-name')?.addEventListener('input', e => { state.name = e.target.value; });
+document.getElementById('student-email')?.addEventListener('input', e => { state.email = e.target.value; });
 document.getElementById('college')?.addEventListener('input', e => { state.college = e.target.value; });
 document.getElementById('academic-year')?.addEventListener('change', e => { state.academic_year = e.target.value; });
 document.getElementById('board')?.addEventListener('input', e => { state.board_university = e.target.value; });
@@ -406,50 +433,66 @@ document.getElementById('generate-btn')?.addEventListener('click', async () => {
   try {
     // 1. Complete onboarding
     await api.completeOnboarding({
-      college: state.college || null,
-      academic_year: state.academic_year || null,
-      board_university: state.board_university || null,
-      goals: state.goals || null,
-      existing_commitments: state.existing_commitments || null,
-      class_timings: state.class_timings,
+      name: state.name ? state.name.trim() : 'Student',
+      email: state.email ? state.email.trim() : null,
+      college: state.college ? state.college.trim() : null,
+      academic_year: state.academic_year ? state.academic_year.trim() : null,
+      board_university: state.board_university ? state.board_university.trim() : null,
+      goals: state.goals ? state.goals.trim() : null,
+      existing_commitments: state.existing_commitments ? state.existing_commitments.trim() : null,
+      class_timings: (state.class_timings || []).map(ct => ({
+        day: ct.day || 'monday',
+        start_time: ct.start_time || '09:00',
+        end_time: ct.end_time || '17:00',
+      })),
       preferences: {
-        daily_study_hours: state.daily_study_hours,
-        preferred_study_time: state.preferred_study_time,
-        break_duration_minutes: state.break_duration_minutes,
-        weekend_study: state.saturday_available || state.sunday_available,
-        saturday_available: state.saturday_available,
-        sunday_available: state.sunday_available,
+        daily_study_hours: parseFloat(state.daily_study_hours) || 4.0,
+        preferred_study_time: state.preferred_study_time || 'morning',
+        break_duration_minutes: parseInt(state.break_duration_minutes, 10) || 15,
+        weekend_study: Boolean(state.saturday_available || state.sunday_available),
+        saturday_available: Boolean(state.saturday_available),
+        sunday_available: Boolean(state.sunday_available),
         notification_enabled: true,
         exam_reminder_days: 7,
         theme: 'system',
       },
     });
 
-    // 2. Create subjects & topics
+    // 2. Fetch any existing subjects to prevent duplication
+    const existingSubjects = await api.getSubjects().catch(() => []);
+    const existingSubMap = new Map();
+    (existingSubjects || []).forEach(s => existingSubMap.set(s.name.toLowerCase().trim(), s));
+
+    // Create subjects & topics
     const activeSubjects = state.subjects.filter(s => s && s.name && s.name.trim());
     for (const sub of activeSubjects) {
-      const created = await api.createSubject({
-        name: sub.name.trim(),
-        color: sub.color || '#00f5a0',
-        exam_date: sub.exam_date || null,
-        total_marks: sub.total_marks || null,
-      });
+      const subName = sub.name.trim();
+      let created = existingSubMap.get(subName.toLowerCase());
+
+      if (!created) {
+        created = await api.createSubject({
+          name: subName,
+          color: sub.color || '#00f5a0',
+          exam_date: (sub.exam_date && sub.exam_date.trim()) || null,
+          total_marks: typeof sub.total_marks === 'number' && !isNaN(sub.total_marks) ? sub.total_marks : (parseInt(sub.total_marks, 10) || null),
+        });
+      }
 
       const validTopics = (sub.topics || []).filter(t => t && t.name && t.name.trim());
       for (const t of validTopics) {
         await api.createTopic({
           subject_id: created.id,
           name: t.name.trim(),
-          difficulty: t.difficulty || 3,
-          importance: t.importance || 3,
-          estimated_hours: t.estimated_hours || 2,
+          difficulty: parseInt(t.difficulty, 10) || 3,
+          importance: parseInt(t.importance, 10) || 3,
+          estimated_hours: parseFloat(t.estimated_hours) || 2.0,
           current_progress: 0,
         });
       }
     }
 
     // 3. Generate AI plan
-    await api.generatePlan(false);
+    await api.generatePlan(true);
 
     // 4. Update user state
     const userData = getUser();
@@ -462,7 +505,7 @@ document.getElementById('generate-btn')?.addEventListener('click', async () => {
     setTimeout(() => { navigateTo('/dashboard/index.html'); }, 1000);
 
   } catch (err) {
-    toast.error('Generation Failed', err.message || 'Please try again');
+    toast.error('Generation Failed', err.message || 'Please check your inputs and try again');
     btn.disabled = false;
     genText?.classList.remove('hidden');
     genSpinner?.classList.add('hidden');

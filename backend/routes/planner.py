@@ -26,10 +26,9 @@ async def generate_plan(
     if not topics:
         raise HTTPException(status_code=400, detail="Add topics to your subjects before generating a plan")
 
-    if regenerate:
-        # Remove existing future sessions
-        today_str = date.today().isoformat()
-        await db.sessions.delete_many({"user_id": uid, "date": {"$gte": today_str}, "status": "scheduled"})
+    # Always clear existing future scheduled sessions to prevent duplicate slots
+    today_str = date.today().isoformat()
+    await db.sessions.delete_many({"user_id": uid, "date": {"$gte": today_str}, "status": "scheduled"})
 
     # Generate the timetable
     plan = generate_timetable(subjects, topics, current_user, start_date=date.today())

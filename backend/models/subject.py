@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional, Any
 from datetime import date, datetime
+from utils.helpers import parse_date_safe
 
 
 class SubjectCreate(BaseModel):
@@ -11,6 +12,30 @@ class SubjectCreate(BaseModel):
     target_marks: Optional[int] = Field(None, ge=0, le=1000)
     notes: Optional[str] = None
 
+    @field_validator("exam_date", mode="before")
+    @classmethod
+    def validate_exam_date(cls, v: Any):
+        if v is None or v == "":
+            return None
+        return parse_date_safe(v)
+
+    @field_validator("total_marks", "target_marks", mode="before")
+    @classmethod
+    def validate_marks(cls, v: Any):
+        if v is None or v == "":
+            return None
+        try:
+            return int(v)
+        except (ValueError, TypeError):
+            return None
+
+    @field_validator("color", mode="before")
+    @classmethod
+    def validate_color(cls, v: Any):
+        if not v or not isinstance(v, str) or not v.strip():
+            return "#7C3AED"
+        return v.strip()
+
 
 class SubjectUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=200)
@@ -19,6 +44,23 @@ class SubjectUpdate(BaseModel):
     total_marks: Optional[int] = Field(None, ge=0, le=1000)
     target_marks: Optional[int] = Field(None, ge=0, le=1000)
     notes: Optional[str] = None
+
+    @field_validator("exam_date", mode="before")
+    @classmethod
+    def validate_exam_date(cls, v: Any):
+        if v is None or v == "":
+            return None
+        return parse_date_safe(v)
+
+    @field_validator("total_marks", "target_marks", mode="before")
+    @classmethod
+    def validate_marks(cls, v: Any):
+        if v is None or v == "":
+            return None
+        try:
+            return int(v)
+        except (ValueError, TypeError):
+            return None
 
 
 class SubjectResponse(BaseModel):

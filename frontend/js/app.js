@@ -1,9 +1,4 @@
-/**
- * app.js — Global app initialization, theme management, auth guard,
- * toast notifications, sidebar, modal utilities
- */
-
-import { getToken, getUser, clearToken } from './api.js';
+import api, { getToken, getUser, clearToken, ensureDemoSession } from './api.js';
 
 // ── THEME ─────────────────────────────────────────────────────
 const THEME_KEY = 'sp_theme';
@@ -50,8 +45,9 @@ export function navigateTo(path) {
   window.location.href = getRoutePath(path);
 }
 
-// ── AUTH GUARD ─────────────────────────────────────────────────
+// ── AUTH GUARDS ────────────────────────────────────────────────
 export function requireAuth() {
+  ensureDemoSession();
   const token = getToken();
   if (!token) {
     navigateTo('/auth/login.html');
@@ -72,8 +68,11 @@ export function requireNoAuth() {
 export function requireOnboarding() {
   const user = getUser();
   if (user && !user.onboarding_complete) {
-    navigateTo('/onboarding/index.html');
-    return false;
+    const isAlreadyOnOnboarding = typeof window !== 'undefined' && window.location.pathname.includes('/onboarding/');
+    if (!isAlreadyOnOnboarding) {
+      navigateTo('/onboarding/index.html');
+      return false;
+    }
   }
   return true;
 }
@@ -335,8 +334,75 @@ export function debounce(fn, delay = 300) {
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
 }
 
+// ── NOTIFICATIONS ──────────────────────────────────────────────
+export async function initNotifications() {
+  const btn = document.getElementById('notif-btn');
+  const badge = document.getElementById('notif-badge');
+  const dropdown = document.getElementById('notif-dropdown');
+  if (!btn) return;
+
+  async function updateNotifs() {
+    try {
+      const list = await api.getNotifications();
+      const unreadCount = list.filter(n => !n.is_read).length;
+      if (badge) {
+        badge.textContent = unreadCount;
+        badge.classList.toggle('hidden', unreadCount === 0);
+      }
+
+      if (dropdown) {
+        dropdown.innerHTML = `
+          <div class="flex items-center justify-between pb-2 mb-2" style="border-bottom:1px solid var(--border)">
+            <div class="font-semibold text-sm" style="color:var(--text-primary)">Notifications (${list.length})</div>
+            ${unreadCount > 0 ? `<button class="text-xs text-primary" id="mark-all-read-btn" style="background:none;border:none;cursor:pointer;font-weight:600">Mark all read</button>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+            ${list.map(n => `
+              <div class="p-2 rounded-lg notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" style="cursor:pointer;background:${n.is_read ? 'transparent' : 'var(--primary-bg)'};border-radius:var(--radius-md);border:1px solid ${n.is_read ? 'transparent' : 'rgba(0,245,160,0.2)'}">
+                <div class="text-xs font-semibold" style="color:var(--text-primary)">${n.title}</div>
+                <div class="text-xs text-secondary mt-1">${n.message}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        document.getElementById('mark-all-read-btn')?.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          await api.markAllRead();
+          await updateNotifs();
+        });
+
+        dropdown.querySelectorAll('.notif-item').forEach(item => {
+          item.addEventListener('click', async () => {
+            const id = item.dataset.id;
+            await api.markNotifRead(id);
+            await updateNotifs();
+          });
+        });
+      }
+    } catch {}
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (dropdown) {
+      const isHidden = dropdown.classList.contains('hidden');
+      dropdown.classList.toggle('hidden', !isHidden);
+      if (isHidden) updateNotifs();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  updateNotifs();
+}
+
 // ── INIT ───────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
   initTheme();
   renderUserInfo();
 
@@ -350,6 +416,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', logout);
   });
 
-  // Sidebar
+  // Sidebar & Notifications
   initSidebar();
-});
+  initNotifications();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}

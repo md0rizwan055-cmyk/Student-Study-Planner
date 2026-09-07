@@ -1,19 +1,20 @@
 /**
- * auth.js — Handles signup, login form logic with full validation
+ * auth.js — Demo Mode: Login/Signup bypass real API,
+ * instantly authenticate as demo user and redirect to dashboard.
  */
 
 import { initTheme, toast, navigateTo } from '../js/app.js';
-import api, { setToken, setUser, getToken, getUser, clearToken } from '../js/api.js';
+import api, { setToken, setUser, ensureDemoSession } from '../js/api.js';
 
 initTheme();
 
-// Redirect if already logged in with a known user state; otherwise clear stale token
+// In demo mode, if already "logged in" just go to dashboard
+import { getToken, getUser } from '../js/api.js';
 const token = getToken();
 const user = getUser();
-if (token && user) {
-  navigateTo(user.onboarding_complete ? '/dashboard/index.html' : '/onboarding/index.html');
-} else if (token && !user) {
-  clearToken();
+if (token && user && window.location.pathname.includes('login')) {
+  // Don't auto-redirect on login page so user can see the beautiful login UI
+  // but we won't block them
 }
 
 // ── SHARED UTILITIES ──────────────────────────────────────────
@@ -32,7 +33,7 @@ function clearError(fieldId) {
 }
 
 function clearAllErrors() {
-  ['name', 'email', 'password', 'confirm-password'].forEach(clearError);
+  ['name', 'email', 'university', 'course', 'password', 'confirm-password'].forEach(clearError);
   const banner = document.getElementById('error-banner');
   if (banner) { banner.textContent = ''; banner.classList.add('hidden'); }
 }
@@ -91,11 +92,10 @@ if (pwInput && strengthFill) {
 }
 
 // ── SIGNUP FORM ───────────────────────────────────────────────
-const NAME_REGEX = /^[\p{L}\s'-]+$/u;
+const NAME_REGEX = /^[\p{L}\s'\.-]+$/u;
 
 const signupForm = document.getElementById('signup-form');
 if (signupForm) {
-  // Real-time validation
   signupForm.querySelectorAll('input').forEach(input => {
     input.addEventListener('blur', () => validateSignupField(input));
     input.addEventListener('input', () => clearError(input.id));
@@ -107,6 +107,8 @@ if (signupForm) {
 
     const name = document.getElementById('name')?.value.trim();
     const email = document.getElementById('email')?.value.trim();
+    const university = document.getElementById('university')?.value.trim() || '';
+    const course = document.getElementById('course')?.value.trim() || '';
     const password = document.getElementById('password')?.value;
     const confirm = document.getElementById('confirm-password')?.value;
 
@@ -134,20 +136,13 @@ if (signupForm) {
 
     setLoading(true);
     try {
-      const data = await api.signup({ name, email, password, confirm_password: confirm });
-      setToken(data.access_token);
-      setUser(data.user);
-      toast.success('Account created! 🎉', 'Welcome to StudyAI!');
-
-      // Redirect to onboarding for new users
-      setTimeout(() => {
-        navigateTo(data.user.onboarding_complete
-          ? '/dashboard/index.html'
-          : '/onboarding/index.html');
-      }, 1000);
+      // Demo: use provided name/email/university/course, skip real API
+      const data = await api.signup({ name, email, password, confirm_password: confirm, college: university, academic_year: course });
+      toast.success('Account created! 🎉', `Welcome to StudyAI, ${name}!`);
+      const targetUrl = data.user?.onboarding_complete ? '/dashboard/index.html' : '/onboarding/index.html';
+      setTimeout(() => navigateTo(targetUrl), 1000);
     } catch (err) {
       showGlobalError(err.message || 'Signup failed. Please try again.');
-      toast.error('Signup failed', err.message);
     } finally {
       setLoading(false);
     }
@@ -184,6 +179,7 @@ if (loginForm) {
     const email = document.getElementById('email')?.value.trim();
     const password = document.getElementById('password')?.value;
 
+    // Basic presence validation only — any credentials work in demo
     let valid = true;
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       showError('email', 'Please enter a valid email address'); valid = false;
@@ -197,18 +193,11 @@ if (loginForm) {
     setLoading(true);
     try {
       const data = await api.login({ email, password });
-      setToken(data.access_token);
-      setUser(data.user);
       toast.success('Welcome back! 👋', `Good to see you, ${data.user.name}!`);
-
-      setTimeout(() => {
-        navigateTo(data.user.onboarding_complete
-          ? '/dashboard/index.html'
-          : '/onboarding/index.html');
-      }, 800);
+      const targetUrl = data.user?.onboarding_complete ? '/dashboard/index.html' : '/onboarding/index.html';
+      setTimeout(() => navigateTo(targetUrl), 800);
     } catch (err) {
-      showGlobalError(err.message || 'Login failed. Please check your credentials.');
-      toast.error('Login failed', err.message);
+      showGlobalError('Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }

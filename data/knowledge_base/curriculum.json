@@ -1,0 +1,390 @@
+{
+  "subjects": {
+    "mathematics": {
+      "id": "subj-math",
+      "name": "Mathematics",
+      "category": "Engineering / Science",
+      "default_color": "#00f5a0",
+      "topics": [
+        {
+          "name": "Limits & Continuity",
+          "difficulty": 3,
+          "importance": 5,
+          "estimated_hours": 8,
+          "notes": "Epsilon-delta definitions, L'Hopital's rule, indeterminate forms."
+        },
+        {
+          "name": "Differential Calculus",
+          "difficulty": 4,
+          "importance": 5,
+          "estimated_hours": 10,
+          "notes": "Chain rule, implicit differentiation, mean value theorem, maxima & minima."
+        },
+        {
+          "name": "Integral Calculus",
+          "difficulty": 4,
+          "importance": 5,
+          "estimated_hours": 12,
+          "notes": "Integration by parts, substitution, partial fractions, definite integrals, area under curves."
+        },
+        {
+          "name": "Differential Equations",
+          "difficulty": 5,
+          "importance": 4,
+          "estimated_hours": 10,
+          "notes": "First order ODEs, homogeneous equations, Bernoulli equations, second order linear ODEs."
+        },
+        {
+          "name": "Linear Algebra & Matrices",
+          "difficulty": 4,
+          "importance": 5,
+          "estimated_hours": 10,
+          "notes": "Eigenvalues & eigenvectors, matrix rank, Gaussian elimination, vector spaces."
+        },
+        {
+          "name": "Probability & Statistics",
+          "difficulty": 3,
+          "importance": 4,
+          "estimated_hours": 8,
+          "notes": "Bayes theorem, normal distribution, Poisson distribution, hypothesis testing."
+        },
+        {
+          "name": "Vector Calculus",
+          "difficulty": 5,
+          "importance": 4,
+          "estimated_hours": 9,
+          "notes": "Gradient, divergence, curl, Green's theorem, Stokes' theorem."
+        }
+      ]
+    },
+    "physics": {
+      "id": "subj-phys",
+      "name": "Physics",
+      "category": "Science",
+      "default_color": "#ffb800",
+      "topics": [
+        {
+          "name": "Newton's Laws of Motion",
+          "difficulty": 2,
+          "importance": 5,
+          "estimated_hours": 6,
+          "notes": "Free body diagrams, friction, circular motion dynamics."
+        },
+        {
+          "name": "Work, Energy & Power",
+          "difficulty": 3,
+          "importance": 5,
+          "estimated_hours": 8,
+          "notes": "Work-energy theorem, conservative forces, potential energy surfaces."
+        },
+        {
+          "name": "Rotational Motion",
+          "difficulty": 4,
+          "importance": 4,
+          "estimated_hours": 8,
+          "notes": "Moment of inertia, torque, conservation of angular momentum, rolling motion."
+        },
+        {
+          "name": "Electrostatics & Capacitance",
+          "difficulty": 4,
+          "importance": 5,
+          "estimated_hours": 10,
+          "notes": "Coulomb's Law, Gauss Law, electric field intensity, dielectrics."
+        },
+        {
+          "name": "Current Electricity & Circuits",
+          "difficulty": 3,
+          "importance": 4,
+          "estimated_hours": 8,
+          "notes": "Ohm's Law, Kirchhoff's laws, Wheatstone bridge, RC circuits."
+        },
+        {
+          "name": "Electromagnetic Waves & Optics",
+          "difficulty": 4,
+          "importance": 4,
+          "estimated_hours": 9,
+          "notes": "Maxwell equations, Young's double slit interference, diffraction gratings."
+        },
+        {
+          "name": "Quantum Mechanics & Modern Physics",
+          "difficulty": 5,
+          "importance": 4,
+          "estimated_hours": 10,
+          "notes": "Photoelectric effect, de Broglie wavelength, Bohr model, X-ray spectra."
+        }
+      ]
+    },
+    "data structures": {
+      "id": "subj-ds",
+      "name": "Data Structures",
+      "category": "Computer Science",
+      "default_color": "#00f2fe",
+      "topics": [
+        {
+          "name": "Arrays & Strings",
+          "difficulty": 2,
+          "importance": 5,
+          "estimated_hours": 6,
+          "notes": "Two-pointer technique, sliding window, prefix sums."
+        },
+        {
+          "name": "Linked Lists & Doubly Linked Lists",
+          "difficulty": 3,
+          "importance": 5,
+          "estimated_hours": 8,
+          "notes": "Pointer manipulation, cycle detection (Floyd's algorithm), reversal."
+        },
+        {
+          "name": "Stacks & Queues",
+          "difficulty": 3,
+          "importance": 4,
+          "estimated_hours": 6,
+          "notes": "Infix to postfix conversion, monotonic stacks, priority queues."
+        },
+        {
+          "name": "Binary Trees & BSTs",
+          "difficulty": 4,
+          "importance": 5,
+          "estimated_hours": 10,
+          "notes": "Traversals (Inorder, Preorder, Postorder, Level-order), AVL tree balancing."
+        },
+        {
+          "name": "Graph Algorithms (BFS / DFS)",
+          "difficulty": 4,
+          "importance": 5,
+          "estimated_hours": 12,
+          "notes": "Dijkstra, Bellman-Ford, Kruskal's MST, Topological Sort."
+        },
+        {
+          "name": "Dynamic Programming",
+          "difficulty": 5,
+          "importance": 5,
+          "estimated_hours": 14,
+          "notes": "Memoization vs Tabulation, 0/1 Knapsack, LCS, LIS, Grid DP."
+        },
+        {
+          "name": "Hashing & Heaps",
+          "difficulty": 3,
+          "importance": 4,
+          "estimated_hours": 7,
+          "notes": "Collision resolution techniques, Min-Heap/Max-Heap operations."
+        }
+      ]
+    },
+    "chemistry": {
+      "id": "subj-chem",
+      "name": "Chemistry",
+      "category": "Science",
+      "default_color": "#f59e0b",
+      "topics": [
+        {
+          "name": "Atomic Structure & Periodic Table",
+          "difficulty": 2,
+          "importance": 4,
+          "estimated_hours": 6,
+          "notes": "Bohr model, quantum numbers, electron configuration trends."
+        },
+        {
+          "name": "Chemical Bonding & VSEPR",
+          "difficulty": 3,
+          "importance": 5,
+          "estimated_hours": 8,
+          "notes": "Hybridization, molecular orbital theory, dipole moments."
+        },
+        {
+          "name": "Organic Reaction Mechanisms",
+          "difficulty": 4,
+          "importance": 5,
+          "estimated_hours": 12,
+          "notes": "Nucleophilic substitution (SN1/SN2), electrophilic addition, elimination."
+        },
+        {
+          "name": "Chemical Thermodynamics",
+          "difficulty": 4,
+          "importance": 4,
+          "estimated_hours": 8,
+          "notes": "Enthalpy, Hess Law, Gibbs free energy, entropy changes."
+        },
+        {
+          "name": "Electrochemistry & Nernst Equation",
+          "difficulty": 3,
+          "importance": 4,
+          "estimated_hours": 7,
+          "notes": "Galvanic cells, standard reduction potentials, Faraday's laws."
+        },
+        {
+          "name": "Coordination Compounds",
+          "difficulty": 4,
+          "importance": 4,
+          "estimated_hours": 8,
+          "notes": "Crystal Field Theory (CFT), isomerism, IUPAC nomenclature."
+        }
+      ]
+    },
+    "computer networks": {
+      "id": "subj-net",
+      "name": "Computer Networks",
+      "category": "Computer Science",
+      "default_color": "#fb7185",
+      "topics": [
+        {
+          "name": "OSI & TCP/IP Model Layers",
+          "difficulty": 2,
+          "importance": 5,
+          "estimated_hours": 6,
+          "notes": "Encapsulation, PDUs, comparing 7-layer vs 4-layer model."
+        },
+        {
+          "name": "IP Addressing & Subnetting",
+          "difficulty": 3,
+          "importance": 5,
+          "estimated_hours": 8,
+          "notes": "IPv4 CIDR notation, VLSM calculation, IPv6 addressing."
+        },
+        {
+          "name": "Routing Protocols (OSPF, BGP, RIP)",
+          "difficulty": 4,
+          "importance": 4,
+          "estimated_hours": 8,
+          "notes": "Distance vector vs link state routing, autonomous systems."
+        },
+        {
+          "name": "Transport Layer (TCP / UDP)",
+          "difficulty": 3,
+          "importance": 5,
+          "estimated_hours": 6,
+          "notes": "3-way handshake, TCP windowing, congestion control algorithms."
+        },
+        {
+          "name": "Network Security & Cryptography",
+          "difficulty": 4,
+          "importance": 4,
+          "estimated_hours": 8,
+          "notes": "TLS/SSL, RSA encryption, Firewalls, IPSec VPNs."
+        }
+      ]
+    },
+    "machine learning": {
+      "id": "subj-ml",
+      "name": "Machine Learning",
+      "category": "AI / Data Science",
+      "default_color": "#a78bfa",
+      "topics": [
+        {
+          "name": "Linear & Logistic Regression",
+          "difficulty": 3,
+          "importance": 5,
+          "estimated_hours": 8,
+          "notes": "Gradient descent optimization, cost functions, regularization (L1/L2)."
+        },
+        {
+          "name": "Decision Trees & Random Forests",
+          "difficulty": 3,
+          "importance": 5,
+          "estimated_hours": 8,
+          "notes": "Information gain, Gini impurity, Ensemble methods, XGBoost."
+        },
+        {
+          "name": "Neural Networks & Backpropagation",
+          "difficulty": 5,
+          "importance": 5,
+          "estimated_hours": 12,
+          "notes": "Activation functions, forward pass, computational graphs, Adam optimizer."
+        },
+        {
+          "name": "Convolutional Neural Networks (CNNs)",
+          "difficulty": 4,
+          "importance": 4,
+          "estimated_hours": 10,
+          "notes": "Convolutions, pooling layers, ResNet architecture, computer vision applications."
+        },
+        {
+          "name": "Natural Language Processing & Transformers",
+          "difficulty": 5,
+          "importance": 5,
+          "estimated_hours": 12,
+          "notes": "Self-attention mechanism, BERT, GPT architecture, word embeddings."
+        }
+      ]
+    },
+    "operating systems": {
+      "id": "subj-os",
+      "name": "Operating Systems",
+      "category": "Computer Science",
+      "default_color": "#38bdf8",
+      "topics": [
+        {
+          "name": "Process Management & CPU Scheduling",
+          "difficulty": 3,
+          "importance": 5,
+          "estimated_hours": 7,
+          "notes": "FCFS, SJF, Round Robin, Multi-level feedback queues."
+        },
+        {
+          "name": "Process Synchronization & Semaphores",
+          "difficulty": 4,
+          "importance": 5,
+          "estimated_hours": 9,
+          "notes": "Critical section problem, Peterson's algorithm, Mutex, Producer-Consumer problem."
+        },
+        {
+          "name": "Deadlocks & Banker's Algorithm",
+          "difficulty": 4,
+          "importance": 4,
+          "estimated_hours": 6,
+          "notes": "Deadlock conditions, prevention, avoidance, detection & recovery."
+        },
+        {
+          "name": "Memory Management & Paging",
+          "difficulty": 4,
+          "importance": 5,
+          "estimated_hours": 10,
+          "notes": "Virtual memory, TLB, Page replacement algorithms (FIFO, LRU, Optimal)."
+        },
+        {
+          "name": "File Systems & I/O Systems",
+          "difficulty": 3,
+          "importance": 3,
+          "estimated_hours": 6,
+          "notes": "Inodes, file allocation methods, disk scheduling (SCAN, C-LOOK)."
+        }
+      ]
+    },
+    "microeconomics": {
+      "id": "subj-econ",
+      "name": "Microeconomics",
+      "category": "Commerce / Social Science",
+      "default_color": "#10b981",
+      "topics": [
+        {
+          "name": "Supply & Demand Elasticity",
+          "difficulty": 2,
+          "importance": 5,
+          "estimated_hours": 5,
+          "notes": "Price elasticity, cross-price elasticity, market equilibrium shifts."
+        },
+        {
+          "name": "Consumer Theory & Utility",
+          "difficulty": 3,
+          "importance": 4,
+          "estimated_hours": 7,
+          "notes": "Indifference curves, budget constraints, marginal rate of substitution."
+        },
+        {
+          "name": "Production & Cost Functions",
+          "difficulty": 3,
+          "importance": 4,
+          "estimated_hours": 7,
+          "notes": "Short-run vs long-run costs, economies of scale, marginal cost curves."
+        },
+        {
+          "name": "Market Structures & Game Theory",
+          "difficulty": 4,
+          "importance": 5,
+          "estimated_hours": 9,
+          "notes": "Perfect competition, Monopoly price discrimination, Nash equilibrium."
+        }
+      ]
+    }
+  }
+}

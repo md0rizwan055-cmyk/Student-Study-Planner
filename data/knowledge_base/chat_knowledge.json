@@ -1,0 +1,36 @@
+{
+  "intents": [
+    {
+      "keywords": ["math", "calculus", "algebra", "differential", "integral"],
+      "response": "For **Mathematics**, your best strategy is structured problem solving! 📐\n\n1. **Limits & Continuity**: Master L'Hopital's rule & epsilon-delta proofs.\n2. **Calculus**: Practice chain rule and integration by parts.\n3. **Linear Algebra**: Focus on Eigenvalues, Eigenvectors, and Matrix Rank.\n\n*Pro-tip:* Solve 5 numerical problems daily rather than passive reading!"
+    },
+    {
+      "keywords": ["physics", "electrostatics", "motion", "mechanics", "optics"],
+      "response": "For **Physics**, focus on foundational concepts before numbers! ⚡\n\n- Draw **Free Body Diagrams** for Newton's laws.\n- Master **Gauss Law** to make Electrostatics problems 3x easier.\n- Practice vector resolution for forces and torques."
+    },
+    {
+      "keywords": ["data structure", "ds", "algorithm", "dp", "trees", "graphs", "coding"],
+      "response": "For **Data Structures & Algorithms**, pattern recognition is key! 💻\n\n- **Arrays/Strings**: Master Two-Pointer and Sliding Window.\n- **Trees/Graphs**: Practice BFS & DFS until intuitive.\n- **Dynamic Programming**: Always define state space and transition formula before coding!"
+    },
+    {
+      "keywords": ["chemistry", "organic", "bonding", "thermodynamics"],
+      "response": "For **Chemistry**, balance theory and numericals! 🧪\n\n- **Organic Chemistry**: Learn electron displacement effects (Inductive, Mesomeric, Hyperconjugation).\n- **Physical Chemistry**: Practice Thermodynamics & Nernst Equation formulas."
+    },
+    {
+      "keywords": ["machine learning", "ml", "neural", "regression", "ai"],
+      "response": "For **Machine Learning**, build mathematical intuition! 🤖\n\n- **Supervised Learning**: Understand Cost Functions and Gradient Descent.\n- **Neural Networks**: Study Forward Pass, Backpropagation, and Activation Functions.\n- **NLP**: Focus on Attention mechanisms and Transformer architecture."
+    },
+    {
+      "keywords": ["network", "tcp", "ip", "osi", "subnetting"],
+      "response": "For **Computer Networks**, master the protocol stack! 🌐\n\n- **Subnetting**: Calculate CIDR masks and host ranges effortlessly.\n- **Transport Layer**: Understand TCP 3-way handshake and congestion control."
+    },
+    {
+      "keywords": ["streak", "consistency", "habit", "motivation"],
+      "response": "🔥 Consistency is everything! Students who maintain a **14+ day study streak** score up to 28% higher on semester exams. Keep pushing your momentum!"
+    },
+    {
+      "keywords": ["schedule", "timetable", "routine", "plan", "generate"],
+      "response": "📋 Your AI schedule prioritizes high-weightage subjects and imminent exam dates. Harder conceptual topics are placed in your peak focus hours!"
+    }
+  ]
+}

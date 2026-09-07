@@ -11,40 +11,46 @@ if (requireAuth() && requireOnboarding()) {
   const user = getUser();
 
   // ── INIT ──────────────────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', async () => {
-  // Greeting
-  const greetingEl = document.getElementById('greeting-text');
-  const greetingSubEl = document.getElementById('greeting-sub');
-  if (greetingEl) greetingEl.textContent = `${getGreeting()}, ${user?.name?.split(' ')[0] || 'Student'}! 👋`;
-  if (greetingSubEl) {
-    const today = new Date();
-    greetingSubEl.textContent = `${today.toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric' })} — Here's your study plan.`;
+  async function initDashboard() {
+    // Greeting
+    const greetingEl = document.getElementById('greeting-text');
+    const greetingSubEl = document.getElementById('greeting-sub');
+    if (greetingEl) greetingEl.textContent = `${getGreeting()}, ${user?.name?.split(' ')[0] || 'Student'}! 👋`;
+    if (greetingSubEl) {
+      const today = new Date();
+      greetingSubEl.textContent = `${today.toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric' })} — Here's your study plan.`;
+    }
+
+    // Today's date display
+    const todayDateEl = document.getElementById('today-date');
+    if (todayDateEl) todayDateEl.textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'short', day: 'numeric' });
+
+    // Load all data in parallel
+    try {
+      const [timetable, overview, subjectProgress, streaks, recommendations, examPrep] = await Promise.allSettled([
+        api.getTimetable(todayISO()),
+        api.getOverview(),
+        api.getSubjectProgress(),
+        api.getStreaks(),
+        api.getRecommendations(),
+        api.getExamPrep(),
+      ]);
+
+      renderStats(overview.value, timetable.value, streaks.value);
+      renderSessions(timetable.value);
+      renderExams(examPrep.value);
+      renderRecommendations(recommendations.value);
+      renderProgressRing(overview.value, subjectProgress.value);
+    } catch (err) {
+      toast.error('Load Error', 'Some data failed to load. Please refresh.');
+    }
   }
 
-  // Today's date display
-  const todayDateEl = document.getElementById('today-date');
-  if (todayDateEl) todayDateEl.textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'short', day: 'numeric' });
-
-  // Load all data in parallel
-  try {
-    const [timetable, overview, subjectProgress, streaks, recommendations, examPrep] = await Promise.allSettled([
-      api.getTimetable(todayISO()),
-      api.getOverview(),
-      api.getSubjectProgress(),
-      api.getStreaks(),
-      api.getRecommendations(),
-      api.getExamPrep(),
-    ]);
-
-    renderStats(overview.value, timetable.value, streaks.value);
-    renderSessions(timetable.value);
-    renderExams(examPrep.value);
-    renderRecommendations(recommendations.value);
-    renderProgressRing(overview.value, subjectProgress.value);
-  } catch (err) {
-    toast.error('Load Error', 'Some data failed to load. Please refresh.');
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDashboard);
+  } else {
+    initDashboard();
   }
-});
 
 // ── RENDER STATS ──────────────────────────────────────────────
 function renderStats(overview, timetable, streaks) {
@@ -113,9 +119,12 @@ function renderSessions(timetable) {
     `;
     container.appendChild(card);
   });
+}
 
-  // Session action handlers
-  container.addEventListener('click', async (e) => {
+// Session action handlers bound once
+const todaySessionsContainer = document.getElementById('today-sessions');
+if (todaySessionsContainer) {
+  todaySessionsContainer.addEventListener('click', async (e) => {
     const completeBtn = e.target.closest('.complete-btn');
     const skipBtn = e.target.closest('.skip-btn');
 
@@ -266,6 +275,17 @@ document.getElementById('regen-plan-btn')?.addEventListener('click', () => {
       }
     }
   );
+});
+
+document.getElementById('gen-plan-header-btn')?.addEventListener('click', async () => {
+  try {
+    toast.info('Generating AI Plan...', 'Analyzing your subjects, topics, difficulty, and exam dates...');
+    await api.generatePlan(true);
+    toast.success('✨ AI Plan Generated!', 'Your personalized timetable is ready!');
+    setTimeout(() => location.reload(), 1000);
+  } catch (err) {
+    toast.error('Generation failed', err.message);
+  }
 });
 
 document.getElementById('refresh-rec')?.addEventListener('click', async () => {

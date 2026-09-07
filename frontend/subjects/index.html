@@ -48,15 +48,28 @@
     <div class="modal-header"><h3 class="modal-title" id="subject-modal-title">Add Subject</h3><button class="btn btn-icon" id="close-subject-modal" aria-label="Close">✕</button></div>
     <form id="subject-form" aria-label="Subject form">
       <div style="display:flex;flex-direction:column;gap:var(--space-4)">
-        <div class="form-group"><label class="form-label" for="s-name">Subject Name *</label><input type="text" id="s-name" class="form-input" required aria-required="true"></div>
+        <div class="form-group">
+          <div class="flex items-center justify-between mb-1">
+            <label class="form-label" for="s-name" style="margin:0">Subject Name *</label>
+            <button type="button" class="btn btn-secondary btn-sm" id="ai-gen-topics-btn" style="font-size:11px;padding:4px 10px;background:linear-gradient(135deg,rgba(0,245,160,0.15),rgba(0,242,254,0.15));border:1px solid rgba(0,245,160,0.4);color:var(--text-primary);font-weight:600">
+              ✨ AI Auto-Fill Topics
+            </button>
+          </div>
+          <input type="text" id="s-name" class="form-input" placeholder="e.g. Data Structures, Physics, Machine Learning..." required aria-required="true">
+        </div>
         <div class="form-group"><label class="form-label" for="s-exam">Exam Date</label><input type="date" id="s-exam" class="form-input"></div>
         <div class="form-group"><label class="form-label" for="s-marks">Total Marks</label><input type="number" id="s-marks" class="form-input" min="0" max="1000" placeholder="100"></div>
         <div class="form-group">
           <label class="form-label">Color</label>
           <div class="flex gap-2 flex-wrap mt-2" id="color-picker">
-            ${['#00f5a0','#ffb800','#00f2fe','#10b981','#f59e0b','#ff4757','#38bdf8','#a3e635'].map(c =>
-              `<div class="color-swatch" style="background:${c}" data-color="${c}" role="button" tabindex="0" aria-label="Color ${c}"></div>`
-            ).join('')}
+            <div class="color-swatch selected" style="background:#00f5a0" data-color="#00f5a0" role="button" tabindex="0" aria-label="Color #00f5a0"></div>
+            <div class="color-swatch" style="background:#ffb800" data-color="#ffb800" role="button" tabindex="0" aria-label="Color #ffb800"></div>
+            <div class="color-swatch" style="background:#00f2fe" data-color="#00f2fe" role="button" tabindex="0" aria-label="Color #00f2fe"></div>
+            <div class="color-swatch" style="background:#10b981" data-color="#10b981" role="button" tabindex="0" aria-label="Color #10b981"></div>
+            <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b" role="button" tabindex="0" aria-label="Color #f59e0b"></div>
+            <div class="color-swatch" style="background:#ff4757" data-color="#ff4757" role="button" tabindex="0" aria-label="Color #ff4757"></div>
+            <div class="color-swatch" style="background:#38bdf8" data-color="#38bdf8" role="button" tabindex="0" aria-label="Color #38bdf8"></div>
+            <div class="color-swatch" style="background:#a3e635" data-color="#a3e635" role="button" tabindex="0" aria-label="Color #a3e635"></div>
           </div>
         </div>
       </div>

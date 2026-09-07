@@ -12,7 +12,7 @@ from typing import List, Dict, Optional, Tuple
 from utils.helpers import (
     compute_priority_score, categorize_topic,
     time_str_to_minutes, minutes_to_time_str, get_day_name,
-    calculate_days_to_exam
+    calculate_days_to_exam, parse_date_safe
 )
 import random
 
@@ -44,28 +44,31 @@ def generate_timetable(
     Main timetable generation function.
     Returns a structured plan with daily sessions.
     """
-    if not start_date:
+    if start_date:
+        start_date = parse_date_safe(start_date) or date.today()
+    else:
         start_date = date.today()
 
-    prefs = student_profile.get("preferences", {})
-    daily_hours = prefs.get("daily_study_hours", 4.0)
-    preferred_time = prefs.get("preferred_study_time", "morning")
-    break_duration = prefs.get("break_duration_minutes", 15)
-    weekend_study = prefs.get("weekend_study", True)
-    saturday = prefs.get("saturday_available", True)
-    sunday = prefs.get("sunday_available", True)
-    class_timings = student_profile.get("class_timings", [])
+    student_profile = student_profile or {}
+    prefs = student_profile.get("preferences") or {}
+    daily_hours = float(prefs.get("daily_study_hours") or 4.0)
+    preferred_time = str(prefs.get("preferred_study_time") or "morning")
+    break_duration = int(prefs.get("break_duration_minutes") or 15)
+    weekend_study = bool(prefs.get("weekend_study", True))
+    saturday = bool(prefs.get("saturday_available", True))
+    sunday = bool(prefs.get("sunday_available", True))
+    class_timings = student_profile.get("class_timings") or []
 
     # Determine planning end date (latest exam date + buffer, or 90 days)
     end_date = _get_planning_end_date(subjects, start_date)
 
     # Score and sort topics
     enriched_topics = _enrich_topics(topics, subjects, start_date)
-    enriched_topics.sort(key=lambda t: t["priority_score"], reverse=True)
+    enriched_topics.sort(key=lambda t: t.get("priority_score", 0.5), reverse=True)
 
     # Determine if overloaded
     total_remaining_hours = sum(
-        t["estimated_hours"] * (1 - t["current_progress"] / 100)
+        float(t.get("estimated_hours", 2.0)) * (1 - float(t.get("current_progress", 0.0)) / 100)
         for t in enriched_topics
     )
     available_days = _count_available_days(start_date, end_date, weekend_study, saturday, sunday)
@@ -75,16 +78,16 @@ def generate_timetable(
     # Categorize topics
     for t in enriched_topics:
         t["category"] = categorize_topic(
-            t["priority_score"], t.get("days_to_exam"), t["current_progress"]
+            t.get("priority_score", 0.5), t.get("days_to_exam"), float(t.get("current_progress", 0.0))
         )
 
     topic_categories = [
         {
             "topic_id": str(t["_id"]),
-            "topic_name": t["name"],
+            "topic_name": t.get("name", "Untitled Topic"),
             "subject_name": t.get("subject_name", ""),
-            "priority_score": t["priority_score"],
-            "category": t["category"],
+            "priority_score": t.get("priority_score", 0.5),
+            "category": t.get("category", "should_study"),
             "reasoning": _generate_reasoning(t),
         }
         for t in enriched_topics
@@ -92,12 +95,13 @@ def generate_timetable(
 
     # Generate day-by-day schedule
     daily_plans = []
-    topic_queue = [t for t in enriched_topics if t["category"] in ("must_study", "should_study")]
-    if not overloaded:
-        topic_queue = enriched_topics  # include all
+    topic_queue = [t for t in enriched_topics if t.get("category") in ("must_study", "should_study")]
+    if not overloaded or not topic_queue:
+        topic_queue = enriched_topics  # include all if none in must/should or not overloaded
 
     topic_hours_remaining = {
-        str(t["_id"]): max(0, t["estimated_hours"] * (1 - t["current_progress"] / 100))
+        str(t["_id"]): max(0.5, float(t.get("estimated_hours", 2.0)) * (1 - float(t.get("current_progress", 0.0)) / 100))
+        if float(t.get("current_progress", 0.0)) < 100 else 0.5
         for t in topic_queue
     }
 
@@ -326,22 +330,16 @@ def _enrich_topics(topics: List[dict], subjects: List[dict], start_date: date) -
     enriched = []
     for t in topics:
         subj = subject_map.get(str(t.get("subject_id", "")), {})
-        exam_date_raw = subj.get("exam_date")
-        if exam_date_raw:
-            if isinstance(exam_date_raw, str):
-                exam_date = date.fromisoformat(exam_date_raw)
-            elif isinstance(exam_date_raw, datetime):
-                exam_date = exam_date_raw.date()
-            else:
-                exam_date = exam_date_raw
+        exam_date = parse_date_safe(subj.get("exam_date"))
+        if exam_date:
             days_to_exam = (exam_date - start_date).days
         else:
             days_to_exam = None
 
         score = compute_priority_score(
-            t.get("difficulty", 3),
-            t.get("importance", 3),
-            t.get("current_progress", 0),
+            int(t.get("difficulty") or 3),
+            int(t.get("importance") or 3),
+            float(t.get("current_progress") or 0.0),
             days_to_exam,
         )
         enriched.append({
@@ -357,12 +355,8 @@ def _enrich_topics(topics: List[dict], subjects: List[dict], start_date: date) -
 def _get_planning_end_date(subjects: List[dict], start_date: date) -> date:
     latest = start_date + timedelta(days=90)
     for s in subjects:
-        ed = s.get("exam_date")
-        if ed:
-            if isinstance(ed, str):
-                ed = date.fromisoformat(ed)
-            elif isinstance(ed, datetime):
-                ed = ed.date()
+        ed = parse_date_safe(s.get("exam_date"))
+        if ed and ed >= start_date:
             candidate = ed + timedelta(days=3)
             if candidate > latest:
                 latest = candidate

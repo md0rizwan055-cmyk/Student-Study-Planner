@@ -46,7 +46,7 @@ function parseMarkdown(text) {
     .replace(/\n/g, '<br>');
 }
 
-async function sendMessage(message) {
+async function sendMessage(message, mode = 'ask_anything') {
   if (!message.trim()) return;
 
   addMessage('user', message);
@@ -59,7 +59,7 @@ async function sendMessage(message) {
   document.getElementById('send-spinner').classList.remove('hidden');
 
   try {
-    const result = await api.chat(message, conversationId);
+    const result = await api.chat(message, conversationId, mode);
     loadingMsg.querySelector('.message-bubble').innerHTML = parseMarkdown(result.response);
   } catch (err) {
     loadingMsg.querySelector('.message-bubble').innerHTML = `Sorry, I'm having trouble connecting right now. Please try again. <em>(${err.message})</em>`;
@@ -87,9 +87,13 @@ chatInput?.addEventListener('input', () => {
   chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
 });
 
-// Quick prompts
+// Quick prompts & Study Modes
 document.querySelectorAll('.quick-prompt-btn').forEach(btn => {
-  btn.addEventListener('click', () => sendMessage(btn.dataset.prompt));
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.mode || 'ask_anything';
+    const prompt = btn.dataset.prompt || btn.textContent.trim();
+    sendMessage(prompt, mode);
+  });
 });
 
 // Clear chat

@@ -30,7 +30,14 @@
   <button id="sidebar-toggle" class="btn btn-icon" aria-label="Toggle sidebar">☰</button>
   <a href="index.html" class="nav-logo"><div class="nav-logo-icon">🎓</div><span class="nav-logo-text">StudyAI</span></a>
   <div class="ml-auto flex items-center gap-3">
-    <button class="btn btn-icon" id="notif-btn" aria-label="Notifications"><span>🔔</span><span id="notif-badge" class="hidden" style="position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700"></span></button>
+    <div style="position:relative">
+      <button class="btn btn-icon" id="notif-btn" aria-label="Notifications" style="position:relative">
+        <span>🔔</span>
+        <span id="notif-badge" class="hidden" style="position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700"></span>
+      </button>
+      <div id="notif-dropdown" class="card hidden" style="position:absolute;top:calc(100% + 8px);right:0;width:340px;max-height:420px;overflow-y:auto;z-index:var(--z-popover);box-shadow:var(--shadow-xl);padding:var(--space-3)">
+      </div>
+    </div>
     <div style="position:relative">
       <button class="avatar avatar-md" id="user-menu-btn" aria-label="User menu" data-user-avatar>S</button>
     </div>
@@ -61,9 +68,10 @@
         <h1 class="page-title" id="greeting-text">Good morning! 👋</h1>
         <p class="text-secondary text-sm mt-1" id="greeting-sub">Here's your study plan for today.</p>
       </div>
-      <div class="flex gap-3">
+      <div class="flex gap-3 flex-wrap">
+        <button class="btn btn-primary" id="gen-plan-header-btn" aria-label="Generate AI Study Plan">🤖 Generate AI Plan</button>
         <button class="btn btn-secondary" id="redistribute-btn" aria-label="Redistribute missed sessions">🔄 Sync Missed</button>
-        <a href="../planner/index.html" class="btn btn-primary" aria-label="View full planner">📅 Full Planner</a>
+        <a href="../planner/index.html" class="btn btn-secondary" aria-label="View full planner">📅 Full Planner</a>
       </div>
     </div>
   </div>
