@@ -1,7 +1,7 @@
 /**
  * planner.js — Planner page: daily, weekly, exam prep views
  */
-import { initTheme, requireAuth, toast, formatTime, todayISO, daysUntil, sessionChip, statusBadge, confirmDialog } from '../js/app.js';
+import { initTheme, requireAuth, toast, formatTime, todayISO, formatDateISO, parseISODate, daysUntil, sessionChip, statusBadge, confirmDialog } from '../js/app.js';
 import api from '../js/api.js';
 
 initTheme();
@@ -84,7 +84,7 @@ async function loadDaily(dateStr) {
         </div>
         <div class="flex gap-2" role="group" aria-label="Session actions">
           ${s.status === 'scheduled' ? `
-            <a href="../focus/index.html?session=${s.id}" class="btn btn-primary btn-sm" aria-label="Start session">▶ Start</a>
+            <a href="../dashboard/index.html?session=${s.id}" class="btn btn-primary btn-sm" aria-label="Start session">▶ Start</a>
             <button class="btn btn-success btn-sm complete-btn" data-id="${s.id}" aria-label="Mark complete">✓</button>
             <button class="btn btn-ghost btn-sm skip-btn" data-id="${s.id}" aria-label="Skip">Skip</button>
             <button class="btn btn-secondary btn-sm reschedule-btn" data-id="${s.id}" aria-label="Reschedule">📅</button>
@@ -125,15 +125,15 @@ function setupSessionHandlers(container) {
 
 // Day navigation
 document.getElementById('prev-day')?.addEventListener('click', () => {
-  const d = new Date(currentDate);
+  const d = parseISODate(currentDate);
   d.setDate(d.getDate() - 1);
-  currentDate = d.toISOString().split('T')[0];
+  currentDate = formatDateISO(d);
   loadDaily(currentDate);
 });
 document.getElementById('next-day')?.addEventListener('click', () => {
-  const d = new Date(currentDate);
+  const d = parseISODate(currentDate);
   d.setDate(d.getDate() + 1);
-  currentDate = d.toISOString().split('T')[0];
+  currentDate = formatDateISO(d);
   loadDaily(currentDate);
 });
 document.getElementById('today-btn')?.addEventListener('click', () => {
@@ -148,7 +148,7 @@ async function loadWeekly(weekStart) {
   grid.innerHTML = '';
 
   try {
-    const data = await api.getWeekly(weekStart.toISOString().split('T')[0]);
+    const data = await api.getWeekly(formatDateISO(weekStart));
     if (label) label.textContent = `Week of ${weekStart.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}`;
 
     data.days.forEach(day => {

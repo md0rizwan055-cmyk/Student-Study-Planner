@@ -10,22 +10,226 @@
   <link rel="stylesheet" href="../css/animations.css">
   <link rel="stylesheet" href="../css/components.css">
   <style>
+    /* ── DASHBOARD LAYOUT & GRIDS ───────────────────────────── */
     .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
     .dash-main { display: grid; grid-template-columns: 1fr 340px; gap: var(--space-6); }
+    .dash-column-left { display: flex; flex-direction: column; gap: var(--space-6); }
+    .dash-column-right { display: flex; flex-direction: column; gap: var(--space-6); }
+
+    /* ── SESSION CHECKBOX SYSTEM ────────────────────────────── */
+    .session-card-dash {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+      transition: all var(--transition-base);
+    }
+    .session-card-dash:hover { border-color: var(--primary); background: var(--bg-card-hover); }
+    .session-card-dash.completed {
+      opacity: 0.65;
+      background: rgba(0, 245, 160, 0.03);
+      border-color: rgba(0, 245, 160, 0.2);
+    }
+    .session-card-dash.completed:hover { opacity: 0.9; }
+    .session-card-dash.completed .session-topic-title {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+    .session-checkbox-wrapper { display: flex; align-items: center; justify-content: center; padding: 2px; }
+    .session-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      cursor: pointer;
+      display: grid;
+      place-content: center;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+    .session-checkbox:checked {
+      background: linear-gradient(135deg, var(--emerald-500), var(--primary));
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(0, 245, 160, 0.4);
+    }
+    .session-checkbox:checked::before {
+      content: "✓";
+      color: #06090e;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .session-checkbox:hover { border-color: var(--primary); transform: scale(1.08); }
+    .session-color-bar { width: 4px; height: 40px; border-radius: var(--radius-full); flex-shrink: 0; }
+
+    /* ── FOCUS TIMER STYLES ─────────────────────────────────── */
+    .focus-timer-container { text-align: center; }
+    .timer-ring { position: relative; width: 220px; height: 220px; margin: 0 auto var(--space-4); }
+    .timer-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .timer-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+    .timer-progress { fill: none; stroke: url(#timerGrad); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 678; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke 0.3s ease; }
+    .timer-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+    .timer-time { font-family: 'JetBrains Mono', monospace; font-size: var(--text-4xl); font-weight: 700; color: var(--text-primary); line-height: 1; }
+    .timer-label { font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-1); text-transform: uppercase; letter-spacing: 0.05em; }
+    .subject-tag { background: var(--primary-bg); border: 1px solid rgba(0, 245, 160, 0.3); border-radius: var(--radius-full); padding: var(--space-1) var(--space-4); display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); font-weight: var(--font-semibold); margin-bottom: var(--space-3); }
+    .controls { display: flex; gap: var(--space-3); justify-content: center; margin-top: var(--space-4); }
+    .control-btn { width: 50px; height: 50px; border-radius: 50%; font-size: 20px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all var(--transition-spring); }
+    .control-btn:hover { transform: scale(1.1); }
+    .control-btn:active { transform: scale(0.95); }
+    .feedback-options { display: flex; gap: var(--space-3); justify-content: center; margin-top: var(--space-3); flex-wrap: wrap; }
+    .focus-feedback-btn { padding: var(--space-2) var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--border); cursor: pointer; font-size: var(--text-xs); font-weight: var(--font-medium); background: var(--bg-card); color: var(--text-secondary); transition: all var(--transition-fast); }
+    .focus-feedback-btn:hover, .focus-feedback-btn.selected { border-color: var(--primary); background: var(--primary-bg); color: var(--primary-light); }
+
+    /* ── COMPACT CALENDAR STYLES ────────────────────────────── */
+    .dash-calendar-card { overflow: hidden; }
+    .dash-cal-header-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-3); }
+    .dash-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .dash-cal-dows { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: var(--space-2); }
+    .dash-cal-dow { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; padding: 2px; }
+    .dash-cal-cell {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      min-height: 54px;
+      padding: 3px 4px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all var(--transition-fast);
+    }
+    .dash-cal-cell:hover { border-color: var(--primary); background: var(--primary-bg); }
+    .dash-cal-cell.today { border-color: var(--primary); background: rgba(0, 245, 160, 0.08); box-shadow: 0 0 10px rgba(0, 245, 160, 0.15); }
+    .dash-cal-cell.other-month { opacity: 0.35; }
+    .dash-cal-cell.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); background: rgba(0, 242, 254, 0.08); }
+    .dash-cal-day-num { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+    .dash-cal-cell.today .dash-cal-day-num { color: var(--primary-light); font-weight: 800; }
+    .dash-cal-dots { display: flex; gap: 2px; flex-wrap: wrap; margin-top: 2px; align-items: center; }
+    .dash-cal-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+    .dash-cal-dot.completed { opacity: 0.45; }
+    .dash-cal-more { font-size: 8px; color: var(--text-muted); line-height: 1; }
+    .dash-cal-session-count { font-size: 8px; text-align: right; line-height: 1; margin-top: 1px; }
+    .dash-cal-tick-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      margin-top: 2px;
+      line-height: 1.2;
+      transition: all var(--transition-fast);
+    }
+    .dash-cal-tick-badge.all-completed {
+      background: linear-gradient(135deg, var(--emerald-500), var(--primary));
+      color: #06090e;
+      box-shadow: 0 0 8px rgba(0, 245, 160, 0.4);
+    }
+    .dash-cal-tick-badge.partial-completed {
+      background: rgba(0, 245, 160, 0.15);
+      color: var(--primary-light);
+      border: 1px solid rgba(0, 245, 160, 0.3);
+    }
+    .dash-cal-legend-bar { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-3); }
+    .dash-cal-legend-item { display: inline-flex; align-items: center; gap: 4px; }
+    .dash-cal-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+    /* Selected Day Panel inside Calendar */
+    .dash-selected-day-container {
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border);
+    }
+    .selected-day-session-card {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-3);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-2);
+      transition: all var(--transition-fast);
+    }
+    .selected-day-session-card:hover { border-color: var(--border); background: var(--bg-card-hover); }
+    .selected-day-session-card.completed {
+      opacity: 0.65;
+      background: rgba(0, 245, 160, 0.03);
+    }
+    .selected-day-session-card.completed:hover { opacity: 0.9; }
+
+    /* ── DAILY ANALYTICS STYLES ─────────────────────────────── */
+    .daily-analytics-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-2); margin-top: var(--space-3); }
+    .analytics-day-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .analytics-day-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .analytics-day-card.selected { border-color: var(--primary); background: rgba(0, 245, 160, 0.08); box-shadow: 0 0 12px rgba(0, 245, 160, 0.2); }
+    .analytics-day-card.today { border-color: var(--accent); }
+    .analytics-day-header { font-size: var(--text-xs); font-weight: 700; color: var(--text-primary); }
+    .analytics-day-sub { font-size: 10px; color: var(--text-muted); margin-bottom: var(--space-2); }
+    .analytics-pct-badge {
+      font-size: var(--text-sm);
+      font-weight: 800;
+      color: var(--primary-light);
+      margin-bottom: var(--space-1);
+      font-family: 'Outfit', sans-serif;
+    }
+    .analytics-stat-line { font-size: 10px; color: var(--text-secondary); line-height: 1.3; }
+    .analytics-progress-mini { width: 100%; height: 5px; background: var(--border); border-radius: var(--radius-full); overflow: hidden; margin-top: var(--space-2); }
+    .analytics-progress-fill { height: 100%; background: linear-gradient(90deg, var(--emerald-500), var(--primary)); border-radius: var(--radius-full); transition: width 0.4s ease; }
+    .analytics-summary-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-input);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-3);
+    }
+
+    /* ── EXAMS & MISC ───────────────────────────────────────── */
     .exam-card { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); margin-bottom: var(--space-3); }
     .exam-countdown { font-family: 'Outfit', sans-serif; font-size: var(--text-2xl); font-weight: 900; line-height: 1; }
-    .session-card-dash { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-4); display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); transition: all var(--transition-fast); cursor: pointer; }
-    .session-card-dash:hover { border-color: var(--primary); background: var(--bg-card-hover); }
-    .session-color-bar { width: 4px; height: 40px; border-radius: var(--radius-full); flex-shrink: 0; }
     .ai-rec-item { padding: var(--space-3); background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: var(--space-2); font-size: var(--text-sm); }
     .ring-chart { position: relative; display: flex; align-items: center; justify-content: center; }
     .ring-center { position: absolute; text-align: center; }
-    @media (max-width: 1100px) { .dash-grid { grid-template-columns: repeat(2, 1fr); } .dash-main { grid-template-columns: 1fr; } }
-    @media (max-width: 600px) { .dash-grid { grid-template-columns: 1fr 1fr; } }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .dash-grid { grid-template-columns: repeat(2, 1fr); }
+      .dash-main { grid-template-columns: 1fr; }
+      .daily-analytics-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 650px) {
+      .dash-grid { grid-template-columns: 1fr 1fr; }
+      .daily-analytics-grid { grid-template-columns: repeat(2, 1fr); }
+      .dash-cal-cell { min-height: 44px; padding: 2px; }
+    }
   </style>
 </head>
 <body>
-<!-- Sidebar -->
+<!-- Top Nav -->
 <nav class="nav" role="navigation" aria-label="Top navigation">
   <button id="sidebar-toggle" class="btn btn-icon" aria-label="Toggle sidebar">☰</button>
   <a href="index.html" class="nav-logo"><div class="nav-logo-icon">🎓</div><span class="nav-logo-text">StudyAI</span></a>
@@ -44,12 +248,12 @@
   </div>
 </nav>
 
+<!-- Sidebar: Main (Dashboard, Planner), Academic, AI, Account -->
 <aside class="sidebar" role="navigation" aria-label="Main navigation">
   <div class="sidebar-section">Main</div>
   <a href="index.html" class="sidebar-item active" aria-current="page"><span>🏠</span> Dashboard</a>
   <a href="../planner/index.html" class="sidebar-item"><span>📅</span> Planner</a>
-  <a href="../calendar/index.html" class="sidebar-item"><span>🗓️</span> Calendar</a>
-  <a href="../focus/index.html" class="sidebar-item"><span>⏱️</span> Focus Mode</a>
+  <a href="../timetable/index.html" class="sidebar-item"><span>📋</span> Timetable</a>
   <div class="sidebar-section">Academic</div>
   <a href="../subjects/index.html" class="sidebar-item"><span>📚</span> Subjects & Topics</a>
   <a href="../progress/index.html" class="sidebar-item"><span>📊</span> Progress</a>
@@ -60,10 +264,11 @@
   <button class="sidebar-item" data-logout><span>🚪</span> Logout</button>
 </aside>
 
+<!-- Main Dashboard Page -->
 <main class="page-with-sidebar" role="main">
   <!-- Header -->
   <div class="page-header">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between flex-wrap gap-4">
       <div>
         <h1 class="page-title" id="greeting-text">Good morning! 👋</h1>
         <p class="text-secondary text-sm mt-1" id="greeting-sub">Here's your study plan for today.</p>
@@ -77,11 +282,11 @@
   </div>
 
   <!-- Stats Grid -->
-  <section class="dash-grid stagger" aria-label="Today's stats" role="region">
+  <section class="dash-grid stagger" aria-label="Study stats" role="region">
     <div class="stat-card animate-fade-up">
       <div class="stat-icon" style="background:var(--primary-bg)">📖</div>
       <div class="stat-value" id="stat-hours">--</div>
-      <div class="stat-label">Study Hours Today</div>
+      <div class="stat-label" id="stat-hours-label">Study Hours Today</div>
     </div>
     <div class="stat-card animate-fade-up">
       <div class="stat-icon" style="background:var(--success-bg)">✅</div>
@@ -102,23 +307,193 @@
 
   <!-- Main layout -->
   <div class="dash-main">
-    <!-- Left: Today's timetable -->
-    <div>
-      <div class="flex items-center justify-between mb-4">
-        <h2 style="font-size:var(--text-xl);font-weight:700">📅 Today's Sessions</h2>
-        <span class="text-sm text-muted" id="today-date"></span>
-      </div>
+    <!-- Left Column -->
+    <div class="dash-column-left">
+      <!-- 1. Focus Timer Card -->
+      <section class="card animate-fade-up" id="focus-timer-card" aria-label="Focus Timer">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span style="font-size:1.25rem">⏱️</span>
+            <h2 style="font-size:var(--text-lg);font-weight:700;color:var(--text-primary)">Focus Timer</h2>
+          </div>
+          <span class="text-xs text-muted" id="focus-card-status">Ready to study</span>
+        </div>
 
-      <div id="today-sessions" role="list" aria-label="Today's study sessions" aria-live="polite">
-        <!-- Skeleton -->
-        <div class="skeleton skeleton-card" style="height:80px;margin-bottom:12px"></div>
-        <div class="skeleton skeleton-card" style="height:80px;margin-bottom:12px"></div>
-        <div class="skeleton skeleton-card" style="height:80px"></div>
-      </div>
+        <div class="focus-timer-container">
+          <!-- Setup Panel -->
+          <div id="focus-setup-panel" class="setup-panel animate-fade-up">
+            <p class="text-secondary text-xs mb-4">Select a scheduled session or run a free-form study block</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 text-left" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--space-3)">
+              <div class="form-group">
+                <label class="form-label" for="focus-session-select" style="font-size:var(--text-xs)">Session</label>
+                <select id="focus-session-select" class="form-input form-select" style="font-size:var(--text-xs);padding:var(--space-2)" aria-label="Select study session">
+                  <option value="">— Loading sessions... —</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="focus-duration-select" style="font-size:var(--text-xs)">Duration</label>
+                <select id="focus-duration-select" class="form-input form-select" style="font-size:var(--text-xs);padding:var(--space-2)" aria-label="Session duration">
+                  <option value="25">25 minutes (Pomodoro)</option>
+                  <option value="45" selected>45 minutes</option>
+                  <option value="60">60 minutes</option>
+                  <option value="90">90 minutes</option>
+                  <option value="120">2 hours</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-md w-full" id="focus-start-btn" aria-label="Start focus session">▶ Start Focus Session</button>
+          </div>
 
-      <!-- AI Recommendations -->
-      <div class="card mt-6">
-        <div class="flex items-center gap-3 mb-4">
+          <!-- Active Timer Panel -->
+          <div id="focus-timer-panel" class="hidden animate-scale-bounce">
+            <div id="focus-subject-tag" class="subject-tag" role="status" aria-live="polite">
+              <span id="focus-subject-color" style="width:8px;height:8px;border-radius:50%;background:var(--primary)" aria-hidden="true"></span>
+              <span id="focus-topic">Study Session</span>
+            </div>
+            <div class="text-xs text-muted mb-2" id="focus-type">📖 Learning Session</div>
+
+            <div class="timer-ring" role="timer" aria-label="Study timer" aria-live="off">
+              <svg class="timer-svg" viewBox="0 0 240 240" aria-hidden="true">
+                <defs>
+                  <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#00f5a0"/>
+                    <stop offset="100%" style="stop-color:#ffb800"/>
+                  </linearGradient>
+                </defs>
+                <circle class="timer-bg" cx="120" cy="120" r="108"/>
+                <circle class="timer-progress" id="focus-timer-ring-el" cx="120" cy="120" r="108"/>
+              </svg>
+              <div class="timer-display">
+                <div class="timer-time" id="focus-timer-display" aria-label="Time remaining">45:00</div>
+                <div class="timer-label" id="focus-timer-state-label">Focus</div>
+              </div>
+            </div>
+
+            <div class="controls" role="group" aria-label="Timer controls">
+              <button class="control-btn" id="focus-pause-btn"
+                style="background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary)"
+                aria-label="Pause timer">⏸</button>
+              <button class="control-btn" id="focus-complete-btn"
+                style="background:linear-gradient(135deg,var(--emerald-500),var(--cyan-500));color:#06090e;font-weight:800"
+                aria-label="Complete session">✓</button>
+              <button class="control-btn" id="focus-abandon-btn"
+                style="background:var(--danger-bg);border:1px solid rgba(244,63,94,0.3);color:var(--danger)"
+                aria-label="Abandon session">✕</button>
+            </div>
+
+            <div class="mt-3 text-xs text-muted" id="focus-progress-text" role="status" aria-live="polite">0 min studied · 0% complete</div>
+          </div>
+
+          <!-- Feedback Panel -->
+          <div id="focus-feedback-panel" class="hidden animate-fade-up">
+            <div style="font-size:2.5rem;margin-bottom:var(--space-2)">🎉</div>
+            <h3 style="font-size:var(--text-xl);font-weight:800;margin-bottom:var(--space-1)">Session Complete!</h3>
+            <p class="text-secondary text-xs mb-4">How did it go? Your feedback helps the AI tune your revision schedule.</p>
+            <div class="feedback-options" role="group" aria-label="Session feedback">
+              <button class="focus-feedback-btn" data-rating="easy" aria-label="Session was easy">😌 Easy</button>
+              <button class="focus-feedback-btn" data-rating="neutral" aria-label="Session was neutral">😊 Neutral</button>
+              <button class="focus-feedback-btn" data-rating="hard" aria-label="Session was hard">😓 Hard</button>
+            </div>
+            <div class="form-group mt-3 text-left">
+              <textarea id="focus-feedback-notes" class="form-input" rows="2" placeholder="Optional notes for AI tuning..." style="resize:vertical;font-size:var(--text-xs)" aria-label="Session notes"></textarea>
+            </div>
+            <div class="flex gap-2 mt-3">
+              <button class="btn btn-primary btn-sm flex-1" id="focus-submit-feedback-btn" aria-label="Submit feedback">Submit & Continue</button>
+              <button class="btn btn-ghost btn-sm" id="focus-skip-feedback-btn" aria-label="Skip feedback">Skip</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Today's Sessions Section -->
+      <section class="card animate-fade-up" aria-label="Today's Timetable">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span style="font-size:1.25rem">📅</span>
+            <h2 style="font-size:var(--text-lg);font-weight:700">Today's Sessions</h2>
+          </div>
+          <span class="text-xs text-muted" id="today-date"></span>
+        </div>
+
+        <div id="today-sessions" role="list" aria-label="Today's study sessions" aria-live="polite">
+          <!-- Skeleton -->
+          <div class="skeleton skeleton-card" style="height:70px;margin-bottom:8px"></div>
+          <div class="skeleton skeleton-card" style="height:70px;margin-bottom:8px"></div>
+          <div class="skeleton skeleton-card" style="height:70px"></div>
+        </div>
+      </section>
+
+      <!-- 3. Calendar & Selected Day Section -->
+      <section class="card dash-calendar-card animate-fade-up" aria-label="Schedule Calendar">
+        <div class="dash-cal-header-bar">
+          <div class="flex items-center gap-2">
+            <span style="font-size:1.25rem">🗓️</span>
+            <h2 style="font-size:var(--text-lg);font-weight:700">Study Calendar</h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-xs" id="dash-cal-prev-btn" aria-label="Previous month">←</button>
+            <span id="dash-cal-month-label" style="font-size:var(--text-sm);font-weight:700;color:var(--text-primary);min-width:90px;text-align:center"></span>
+            <button class="btn btn-secondary btn-xs" id="dash-cal-next-btn" aria-label="Next month">→</button>
+            <button class="btn btn-ghost btn-xs" id="dash-cal-today-btn" aria-label="Go to today">Today</button>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="dash-cal-legend-bar" id="dash-cal-legend" role="list" aria-label="Subject Legend"></div>
+
+        <!-- Month Grid -->
+        <div class="dash-cal-dows" role="row">
+          <div class="dash-cal-dow" role="columnheader">Mon</div>
+          <div class="dash-cal-dow" role="columnheader">Tue</div>
+          <div class="dash-cal-dow" role="columnheader">Wed</div>
+          <div class="dash-cal-dow" role="columnheader">Thu</div>
+          <div class="dash-cal-dow" role="columnheader">Fri</div>
+          <div class="dash-cal-dow" role="columnheader">Sat</div>
+          <div class="dash-cal-dow" role="columnheader">Sun</div>
+        </div>
+        <div class="dash-cal-grid" id="dash-cal-grid" role="grid" aria-label="Monthly study schedule grid"></div>
+
+        <!-- Selected Day Sessions -->
+        <div class="dash-selected-day-container" role="region" aria-label="Selected Day Sessions">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 style="font-size:var(--text-sm);font-weight:700;color:var(--text-primary)" id="dash-selected-day-title">Selected Day</h3>
+              <p class="text-xs text-muted" id="dash-selected-day-subtitle">Click a day on the calendar to view or manage sessions</p>
+            </div>
+          </div>
+          <div id="dash-selected-day-sessions" role="list" aria-live="polite">
+            <div class="text-xs text-muted text-center py-4">Select a date on the calendar above</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Daily Analytics Section -->
+      <section class="card animate-fade-up" id="daily-analytics-section" aria-label="Daily Analytics">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span style="font-size:1.25rem">📊</span>
+            <h2 style="font-size:var(--text-lg);font-weight:700">Daily Analytics</h2>
+          </div>
+          <span class="text-xs text-muted">Last 7 Days</span>
+        </div>
+        <p class="text-secondary text-xs mb-3">Study completion, hours logged, and consistency calculated from real session data.</p>
+
+        <!-- Summary Strip -->
+        <div class="analytics-summary-strip" id="analytics-summary-strip">
+          <div class="text-xs"><span class="text-muted">7-Day Study Time:</span> <strong id="summary-study-hours" class="text-primary-light">0.0h</strong></div>
+          <div class="text-xs"><span class="text-muted">Completed Sessions:</span> <strong id="summary-completed-count" class="text-success">0</strong></div>
+          <div class="text-xs"><span class="text-muted">Avg Completion:</span> <strong id="summary-avg-pct" style="color:var(--accent)">0%</strong></div>
+        </div>
+
+        <!-- 7-Day Cards Grid -->
+        <div class="daily-analytics-grid" id="daily-analytics-grid" role="list" aria-label="7-Day breakdown">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- 5. AI Recommendations -->
+      <section class="card animate-fade-up" aria-label="AI Recommendations">
+        <div class="flex items-center gap-3 mb-3">
           <span style="font-size:1.25rem">🤖</span>
           <h3 style="font-size:var(--text-base);font-weight:700;color:var(--text-primary)">AI Recommendations</h3>
           <button class="btn btn-ghost btn-sm ml-auto" id="refresh-rec" aria-label="Refresh recommendations">↻</button>
@@ -128,25 +503,25 @@
           <div class="skeleton skeleton-text sm" style="margin-bottom:8px"></div>
           <div class="skeleton skeleton-text xs"></div>
         </div>
-        <div class="mt-4 pt-4" style="border-top:1px solid var(--border)">
-          <div class="text-xs text-muted mb-2">💡 Study Tip</div>
-          <div id="study-tip" class="text-sm text-secondary"></div>
+        <div class="mt-3 pt-3" style="border-top:1px solid var(--border)">
+          <div class="text-xs text-muted mb-1">💡 Study Tip</div>
+          <div id="study-tip" class="text-xs text-secondary"></div>
         </div>
-      </div>
+      </section>
 
-      <!-- Overall Progress -->
-      <div class="card mt-6">
+      <!-- 6. Overall Progress -->
+      <section class="card animate-fade-up" aria-label="Overall Progress">
         <div class="flex items-center justify-between mb-4">
           <h3 style="font-size:var(--text-base);font-weight:700;color:var(--text-primary)">📊 Overall Progress</h3>
-          <a href="../progress/index.html" class="text-sm" style="color:var(--primary-light)">View Details →</a>
+          <a href="../progress/index.html" class="text-xs" style="color:var(--primary-light)">View Full Analytics →</a>
         </div>
         <div class="flex items-center gap-6">
-          <div class="ring-chart" style="width:100px;height:100px" aria-label="Overall completion percentage">
-            <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
+          <div class="ring-chart" style="width:90px;height:90px" aria-label="Overall completion percentage">
+            <svg width="90" height="90" viewBox="0 0 100 100" aria-hidden="true">
               <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" stroke-width="8"/>
               <circle id="progress-ring" cx="50" cy="50" r="40" fill="none" stroke="url(#grad)" stroke-width="8"
                 stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"
-                transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 1.5s ease"/>
+                transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 1.2s ease"/>
               <defs>
                 <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" style="stop-color:#00f5a0"/>
@@ -155,45 +530,47 @@
               </defs>
             </svg>
             <div class="ring-center">
-              <div style="font-family:'Outfit',sans-serif;font-size:var(--text-lg);font-weight:800;color:var(--text-primary)" id="ring-pct">0%</div>
+              <div style="font-family:'Outfit',sans-serif;font-size:var(--text-base);font-weight:800;color:var(--text-primary)" id="ring-pct">0%</div>
             </div>
           </div>
-          <div style="flex:1">
-            <div id="subject-progress-bars">
-              <div class="skeleton skeleton-text" style="margin-bottom:8px"></div>
-              <div class="skeleton skeleton-text" style="margin-bottom:8px"></div>
-              <div class="skeleton skeleton-text"></div>
-            </div>
+          <div style="flex:1" id="subject-progress-bars">
+            <div class="skeleton skeleton-text" style="margin-bottom:6px"></div>
+            <div class="skeleton skeleton-text" style="margin-bottom:6px"></div>
+            <div class="skeleton skeleton-text"></div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
 
-    <!-- Right: Exams & Quick Actions -->
-    <div>
-      <div class="flex items-center justify-between mb-4">
-        <h2 style="font-size:var(--text-xl);font-weight:700">⏰ Upcoming Exams</h2>
-      </div>
-      <div id="upcoming-exams" aria-label="Upcoming exams" aria-live="polite">
-        <div class="skeleton skeleton-card" style="height:90px;margin-bottom:12px"></div>
-        <div class="skeleton skeleton-card" style="height:90px"></div>
-      </div>
+    <!-- Right Column: Exams & Quick Actions -->
+    <div class="dash-column-right">
+      <!-- Upcoming Exams -->
+      <section class="card animate-fade-up" aria-label="Upcoming Exams">
+        <div class="flex items-center justify-between mb-4">
+          <h2 style="font-size:var(--text-base);font-weight:700">⏰ Upcoming Exams</h2>
+          <a href="../subjects/index.html" class="text-xs text-muted">+ Add</a>
+        </div>
+        <div id="upcoming-exams" aria-label="Upcoming exams list" aria-live="polite">
+          <div class="skeleton skeleton-card" style="height:80px;margin-bottom:10px"></div>
+          <div class="skeleton skeleton-card" style="height:80px"></div>
+        </div>
+      </section>
 
       <!-- Quick Actions -->
-      <div class="card mt-6">
-        <h3 class="font-semibold mb-4" style="color:var(--text-primary)">⚡ Quick Actions</h3>
+      <section class="card animate-fade-up" aria-label="Quick Actions">
+        <h3 class="font-semibold mb-3 text-sm" style="color:var(--text-primary)">⚡ Quick Actions</h3>
         <div style="display:flex;flex-direction:column;gap:var(--space-2)">
-          <a href="../focus/index.html" class="btn btn-primary w-full">⏱ Start Focus Session</a>
+          <button class="btn btn-primary w-full" id="quick-start-focus-btn">⏱ Start Free Focus</button>
           <a href="../subjects/index.html" class="btn btn-secondary w-full">📚 Manage Subjects</a>
           <button class="btn btn-secondary w-full" id="regen-plan-btn" aria-label="Regenerate study plan">🔄 Regenerate Plan</button>
           <a href="../ai-chat/index.html" class="btn btn-secondary w-full">💬 Chat with AI</a>
         </div>
-      </div>
+      </section>
 
       <!-- Motivational card -->
-      <div class="card mt-4" style="background:linear-gradient(135deg,rgba(0,245,160,0.12),rgba(255,184,0,0.08));border-color:rgba(0,245,160,0.25);box-shadow:0 0 25px rgba(0,245,160,0.12)">
+      <div class="card animate-fade-up" style="background:linear-gradient(135deg,rgba(0,245,160,0.12),rgba(255,184,0,0.08));border-color:rgba(0,245,160,0.25);box-shadow:0 0 25px rgba(0,245,160,0.12)">
         <div style="font-size:1.5rem;margin-bottom:var(--space-2)">✨</div>
-        <p class="text-sm" style="color:var(--text-primary);font-weight:var(--font-medium)" id="motivational-msg">
+        <p class="text-xs" style="color:var(--text-primary);font-weight:var(--font-medium)" id="motivational-msg">
           Consistency is the key to mastery. Stay on track!
         </p>
       </div>

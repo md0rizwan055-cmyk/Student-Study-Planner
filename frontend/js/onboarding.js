@@ -502,7 +502,7 @@ document.getElementById('generate-btn')?.addEventListener('click', async () => {
     }
 
     toast.success('🎉 Plan Generated!', 'Your personalized study timetable is ready!');
-    setTimeout(() => { navigateTo('/dashboard/index.html'); }, 1000);
+    setTimeout(() => { navigateTo('/timetable/index.html'); }, 1000);
 
   } catch (err) {
     toast.error('Generation Failed', err.message || 'Please check your inputs and try again');

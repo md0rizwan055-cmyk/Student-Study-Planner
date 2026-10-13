@@ -152,6 +152,7 @@ def _rule_based_chat(message: str, context: dict) -> str:
                 "**Recommendation:** Allocate at least 2 hours to this subject in your next study session. "
                 "Focus on incomplete and difficult topics first! 🎯"
             )
+        return "You haven't added any subjects yet. Head to **Subjects** to add your subjects so the AI can track your priorities!"
 
     elif any(w in msg_lower for w in ["revision", "revise", "review"]):
         return (

@@ -215,7 +215,7 @@ class StudyAIRequestHandler(http.server.SimpleHTTPRequestHandler):
             "color": color,
             "topics": topics,
             "total_topics": len(topics),
-            "total_estimated_hours": sum(t.get('estimated_hours', 2) for t in topics),
+            "total_estimated_hours": sum(int(t.get('estimated_hours', 2)) for t in topics),
             "ai_metadata": {
                 "model": "studyai-curriculum-v1",
                 "pipeline_source": source,

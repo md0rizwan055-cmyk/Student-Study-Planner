@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your AI Generated Timetable — StudyAI</title>
+  <meta name="description" content="Your personalized AI-generated study timetable with session tracking and progress monitoring.">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    /* ── TIMETABLE PAGE STYLES ──────────────────────────────── */
+    .tt-hero {
+      background: linear-gradient(135deg, rgba(0,245,160,0.10), rgba(255,184,0,0.06), rgba(0,242,254,0.04));
+      border: 1px solid rgba(0,245,160,0.18);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6) var(--space-8);
+      margin-bottom: var(--space-6);
+      position: relative;
+      overflow: hidden;
+    }
+    .tt-hero::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -10%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(0,245,160,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .tt-hero-date {
+      font-size: var(--text-sm);
+      color: var(--primary-light);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: var(--space-1);
+    }
+    .tt-hero-title {
+      font-size: var(--text-2xl);
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+    .tt-hero-subtitle {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+    .tt-stats {
+      display: flex;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+      flex-wrap: wrap;
+    }
+    .tt-stat {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-3) var(--space-5);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      min-width: 140px;
+    }
+    .tt-stat-icon {
+      font-size: 1.4rem;
+    }
+    .tt-stat-value {
+      font-size: var(--text-lg);
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .tt-stat-label {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    /* ── PROGRESS SECTION ───────────────────────────────────── */
+    .tt-progress-section {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-5) var(--space-6);
+      margin-bottom: var(--space-6);
+    }
+    .tt-progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-3);
+    }
+    .tt-progress-title {
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .tt-progress-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: var(--text-lg);
+      font-weight: 800;
+      color: var(--primary-light);
+    }
+    .tt-progress-track {
+      background: var(--border);
+      height: 10px;
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-bottom: var(--space-3);
+    }
+    .tt-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      border-radius: var(--radius-full);
+      transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 0 12px rgba(0,245,160,0.4);
+    }
+    .tt-progress-detail {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    /* ── SESSION CARDS ───────────────────────────────────────── */
+    .tt-sessions-header {
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .tt-session-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-5);
+      margin-bottom: var(--space-4);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-4);
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
+    }
+    .tt-session-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(circle at top left, rgba(0,245,160,0.06), transparent 60%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity var(--transition-base);
+    }
+    .tt-session-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md), 0 0 16px rgba(0,245,160,0.08);
+      transform: translateY(-2px);
+    }
+    .tt-session-card:hover::before {
+      opacity: 1;
+    }
+    .tt-session-card.tt-completed {
+      opacity: 0.7;
+      background: rgba(0, 245, 160, 0.03);
+      border-color: rgba(0, 245, 160, 0.2);
+    }
+    .tt-session-card.tt-completed:hover {
+      opacity: 0.85;
+    }
+    .tt-session-card.tt-completed .tt-session-topic {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+    .tt-session-card.tt-completed .tt-session-subject {
+      color: var(--text-muted);
+    }
+
+    /* Session Number Badge */
+    .tt-session-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primary-bg);
+      border: 2px solid rgba(0,245,160,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-xs);
+      font-weight: 800;
+      color: var(--primary-light);
+      flex-shrink: 0;
+      transition: all var(--transition-base);
+    }
+    .tt-completed .tt-session-num {
+      background: linear-gradient(135deg, var(--emerald-500), var(--primary));
+      border-color: var(--primary);
+      color: #06090e;
+    }
+
+    /* Time block */
+    .tt-time-block {
+      flex-shrink: 0;
+      width: 110px;
+      text-align: center;
+    }
+    .tt-time-range {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+    .tt-duration-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      background: var(--secondary-bg);
+      border: 1px solid rgba(255,184,0,0.2);
+      border-radius: var(--radius-full);
+      padding: 2px var(--space-3);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--secondary-light);
+      margin-top: var(--space-1);
+    }
+
+    /* Color bar */
+    .tt-color-bar {
+      width: 4px;
+      height: 60px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+      align-self: center;
+    }
+
+    /* Session info */
+    .tt-session-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .tt-session-topic {
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+      transition: all var(--transition-base);
+    }
+    .tt-session-subject {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-2);
+      transition: all var(--transition-base);
+    }
+    .tt-session-tip {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      padding: var(--space-2) var(--space-3);
+      border-left: 3px solid var(--primary);
+      line-height: 1.5;
+    }
+
+    /* Completion checkbox */
+    .tt-check-area {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-1);
+    }
+    .tt-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-input);
+      cursor: pointer;
+      display: grid;
+      place-content: center;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+    .tt-checkbox:checked {
+      background: linear-gradient(135deg, var(--emerald-500), var(--primary));
+      border-color: var(--primary);
+      box-shadow: 0 0 14px rgba(0,245,160,0.45);
+    }
+    .tt-checkbox:checked::before {
+      content: "✓";
+      color: #06090e;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .tt-checkbox:hover {
+      border-color: var(--primary);
+      transform: scale(1.12);
+    }
+    .tt-check-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+      transition: all var(--transition-base);
+    }
+    .tt-completed .tt-check-label {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    /* ── BREAK INDICATOR ────────────────────────────────────── */
+    .tt-break {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+      margin-bottom: var(--space-2);
+    }
+    .tt-break-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+    .tt-break-label {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      white-space: nowrap;
+      padding: var(--space-1) var(--space-3);
+      background: var(--bg-card);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* ── ACTION BUTTONS ─────────────────────────────────────── */
+    .tt-actions {
+      display: flex;
+      gap: var(--space-3);
+      margin-top: var(--space-6);
+      flex-wrap: wrap;
+    }
+
+    /* ── EMPTY STATE ────────────────────────────────────────── */
+    .tt-empty {
+      text-align: center;
+      padding: var(--space-12) var(--space-6);
+    }
+    .tt-empty-icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-4);
+    }
+    .tt-empty-title {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+    .tt-empty-text {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      margin-bottom: var(--space-6);
+    }
+
+    /* ── RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .tt-hero { padding: var(--space-4) var(--space-5); }
+      .tt-stats { gap: var(--space-2); }
+      .tt-stat { min-width: 100px; padding: var(--space-2) var(--space-3); }
+      .tt-session-card {
+        flex-wrap: wrap;
+        padding: var(--space-4);
+        gap: var(--space-3);
+      }
+      .tt-time-block { width: auto; text-align: left; }
+      .tt-color-bar { width: 100%; height: 4px; }
+      .tt-check-area { flex-direction: row; }
+    }
+    @media (max-width: 480px) {
+      .tt-stats { flex-direction: column; }
+      .tt-stat { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<nav class="nav" role="navigation"><button id="sidebar-toggle" class="btn btn-icon" aria-label="Toggle sidebar">☰</button><a href="../dashboard/index.html" class="nav-logo"><div class="nav-logo-icon">🎓</div><span class="nav-logo-text">StudyAI</span></a>
+<div class="ml-auto flex gap-3">
+  <button class="btn btn-secondary" id="regen-btn" aria-label="Regenerate timetable">🔄 Regenerate</button>
+  <a href="../dashboard/index.html" class="btn btn-ghost" id="dash-btn" aria-label="Go to Dashboard">🏠 Dashboard</a>
+</div></nav>
+<aside class="sidebar" role="navigation">
+<div class="sidebar-section">Main</div>
+<a href="../dashboard/index.html" class="sidebar-item"><span>🏠</span> Dashboard</a>
+<a href="../planner/index.html" class="sidebar-item"><span>📅</span> Planner</a>
+<a href="index.html" class="sidebar-item active" aria-current="page"><span>📋</span> Timetable</a>
+<div class="sidebar-section">Academic</div><a href="../subjects/index.html" class="sidebar-item"><span>📚</span> Subjects & Topics</a><a href="../progress/index.html" class="sidebar-item"><span>📊</span> Progress</a><div class="sidebar-section">AI</div><a href="../ai-chat/index.html" class="sidebar-item"><span>💬</span> AI Assistant</a><a href="../settings/index.html" class="sidebar-item"><span>⚙️</span> Settings</a><button class="sidebar-item" data-logout><span>🚪</span> Logout</button></aside>
+
+<main class="page-with-sidebar" role="main">
+  <!-- Hero / Header -->
+  <div class="tt-hero" id="tt-hero">
+    <div class="tt-hero-date" id="tt-date"></div>
+    <h1 class="tt-hero-title" id="tt-title">Your AI Generated Study Timetable</h1>
+    <p class="tt-hero-subtitle" id="tt-subtitle"></p>
+    <div class="tt-stats" id="tt-stats"></div>
+  </div>
+
+  <!-- Progress Section -->
+  <div class="tt-progress-section" id="tt-progress-section">
+    <div class="tt-progress-header">
+      <span class="tt-progress-title">📊 Today's Progress</span>
+      <span class="tt-progress-pct" id="tt-pct">0%</span>
+    </div>
+    <div class="tt-progress-track">
+      <div class="tt-progress-fill" id="tt-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="tt-progress-detail">
+      <span id="tt-sessions-done">0 / 0 Sessions Completed</span>
+      <span id="tt-hours-done">0h / 0h Studied</span>
+    </div>
+  </div>
+
+  <!-- Sessions List -->
+  <div class="tt-sessions-header"><span>📅</span> Study Sessions</div>
+  <div id="tt-sessions" role="list" aria-label="Study sessions" aria-live="polite">
+    <div class="skeleton skeleton-card" style="height:100px;margin-bottom:12px"></div>
+    <div class="skeleton skeleton-card" style="height:100px;margin-bottom:12px"></div>
+    <div class="skeleton skeleton-card" style="height:100px"></div>
+  </div>
+
+  <!-- Actions -->
+  <div class="tt-actions" id="tt-actions">
+    <button class="btn btn-secondary" id="edit-schedule-btn">✏️ Edit Schedule</button>
+    <button class="btn btn-primary" id="regen-btn-bottom">🔄 Regenerate Timetable</button>
+    <a href="../dashboard/index.html" class="btn btn-ghost">🏠 Go to Dashboard</a>
+  </div>
+</main>
+
+<!-- Regenerate Confirmation Modal -->
+<div class="modal-overlay hidden" id="regen-modal" role="dialog" aria-modal="true" aria-labelledby="regen-modal-title">
+  <div class="modal modal-sm">
+    <div class="modal-header"><h3 class="modal-title" id="regen-modal-title">Regenerate Timetable?</h3><button class="btn btn-icon" id="close-regen-modal" aria-label="Close">✕</button></div>
+    <p class="text-sm text-secondary" style="padding:var(--space-4)">This will generate a completely new timetable using your current subjects and study hours. Your completion progress for today will be reset.</p>
+    <div class="modal-footer"><button class="btn btn-secondary" id="cancel-regen">Cancel</button><button class="btn btn-primary" id="confirm-regen">🔄 Regenerate</button></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+<script type="module" src="../js/timetable.js"></script>
+</body>
+</html>

@@ -9,31 +9,23 @@ from services.notification_service import create_notification
 router = APIRouter()
 
 
-@router.post("/generate")
-async def generate_plan(
-    regenerate: bool = False,
-    current_user: dict = Depends(get_current_user)
-):
-    db = get_db()
-    uid = str(current_user["_id"])
+async def sync_user_timetable(db, uid: str) -> dict:
+    """Synchronize and regenerate scheduled sessions for a user based on active subjects & topics."""
+    user = await db.users.find_one({"_id": to_object_id(uid, "user_id")})
+    if not user:
+        return {"sessions_saved": 0}
 
-    # Fetch subjects and topics
     subjects = await db.subjects.find({"user_id": uid}).to_list(length=200)
     topics = await db.topics.find({"user_id": uid}).to_list(length=2000)
 
-    if not subjects:
-        raise HTTPException(status_code=400, detail="Add at least one subject before generating a plan")
-    if not topics:
-        raise HTTPException(status_code=400, detail="Add topics to your subjects before generating a plan")
-
-    # Always clear existing future scheduled sessions to prevent duplicate slots
     today_str = date.today().isoformat()
+    # Delete existing future scheduled sessions
     await db.sessions.delete_many({"user_id": uid, "date": {"$gte": today_str}, "status": "scheduled"})
 
-    # Generate the timetable
-    plan = generate_timetable(subjects, topics, current_user, start_date=date.today())
+    if not subjects or not topics:
+        return {"sessions_saved": 0}
 
-    # Save sessions to DB
+    plan = generate_timetable(subjects, topics, user, start_date=date.today())
     sessions_to_insert = []
     now = datetime.now(timezone.utc)
     for day_plan in plan["daily_plans"]:
@@ -62,7 +54,6 @@ async def generate_plan(
     if sessions_to_insert:
         await db.sessions.insert_many(sessions_to_insert)
 
-    # Save planner document
     planner_doc = {
         "user_id": uid,
         "generated_at": now,
@@ -78,15 +69,32 @@ async def generate_plan(
     }
     await db.planners.replace_one({"user_id": uid}, planner_doc, upsert=True)
 
-    # Create notification
     await create_notification(
         db, uid, "daily_plan",
-        "📅 Study Plan Generated!",
-        f"Your personalized {plan['total_sessions']}-session plan is ready. "
-        f"Recommended: {plan['recommended_daily_hours']}h/day."
+        "📅 Study Plan Updated!",
+        f"Your timetable has been synchronized with your latest subjects and topics."
     )
 
     return {**plan, "sessions_saved": len(sessions_to_insert)}
+
+
+@router.post("/generate")
+async def generate_plan(
+    regenerate: bool = False,
+    current_user: dict = Depends(get_current_user)
+):
+    db = get_db()
+    uid = str(current_user["_id"])
+
+    subjects = await db.subjects.find({"user_id": uid}).to_list(length=200)
+    topics = await db.topics.find({"user_id": uid}).to_list(length=2000)
+
+    if not subjects:
+        raise HTTPException(status_code=400, detail="Add at least one subject before generating a plan")
+    if not topics:
+        raise HTTPException(status_code=400, detail="Add topics to your subjects before generating a plan")
+
+    return await sync_user_timetable(db, uid)
 
 
 @router.get("/timetable")

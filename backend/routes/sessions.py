@@ -90,6 +90,46 @@ async def complete_session(
     return {"message": "Session completed", "id": session_id}
 
 
+@router.put("/{session_id}/uncomplete")
+async def uncomplete_session(
+    session_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    db = get_db()
+    uid = str(current_user["_id"])
+    session_oid = to_object_id(session_id, "session_id")
+    session = await db.sessions.find_one({"_id": session_oid, "user_id": uid})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    now = datetime.now(timezone.utc)
+    await db.sessions.update_one(
+        {"_id": session_oid},
+        {"$set": {"status": "scheduled", "completed_at": None, "feedback": None, "updated_at": now}}
+    )
+
+    # Revert topic progress if applicable
+    topic_id = session.get("topic_id")
+    if topic_id:
+        topic_oid = to_object_id(str(topic_id), "topic_id")
+        topic = await db.topics.find_one({"_id": topic_oid, "user_id": uid})
+        if topic:
+            old_progress = topic.get("current_progress", 0)
+            increment = max(10, min(25, 100 / max(1, topic.get("estimated_hours", 2) * 2)))
+            new_progress = max(0, old_progress - increment)
+            status_val = "completed" if new_progress >= 100 else ("in_progress" if new_progress > 0 else "not_started")
+            await db.topics.update_one(
+                {"_id": topic_oid},
+                {"$set": {
+                    "current_progress": new_progress,
+                    "status": status_val,
+                    "updated_at": now,
+                }}
+            )
+
+    return {"message": "Session marked as scheduled", "id": session_id}
+
+
 @router.put("/{session_id}/skip")
 async def skip_session(
     session_id: str,

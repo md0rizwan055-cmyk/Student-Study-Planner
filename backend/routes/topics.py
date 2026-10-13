@@ -54,6 +54,9 @@ async def get_topics(
     return [_format_topic(t) for t in topics]
 
 
+from routes.planner import sync_user_timetable
+
+
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_topic(body: TopicCreate, current_user: dict = Depends(get_current_user)):
     db = get_db()
@@ -91,6 +94,13 @@ async def create_topic(body: TopicCreate, current_user: dict = Depends(get_curre
     }
     result = await db.topics.insert_one(doc)
     doc["_id"] = result.inserted_id
+
+    # Auto sync timetable
+    try:
+        await sync_user_timetable(db, uid)
+    except Exception:
+        pass
+
     return _format_topic(doc)
 
 
@@ -131,6 +141,17 @@ async def update_topic(
 
     update_data["updated_at"] = datetime.now(timezone.utc)
     await db.topics.update_one({"_id": topic_oid}, {"$set": update_data})
+
+    # Update existing session labels for this topic
+    if "name" in update_data:
+        await db.sessions.update_many({"user_id": uid, "topic_id": topic_id}, {"$set": {"topic_name": update_data["name"]}})
+
+    # Auto sync timetable
+    try:
+        await sync_user_timetable(db, uid)
+    except Exception:
+        pass
+
     updated = await db.topics.find_one({"_id": topic_oid})
     return _format_topic(updated)
 
@@ -193,4 +214,12 @@ async def delete_topic(topic_id: str, current_user: dict = Depends(get_current_u
     if not topic:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
     await db.topics.delete_one({"_id": topic_oid})
+    await db.sessions.delete_many({"topic_id": topic_id, "user_id": uid})
+
+    # Auto sync timetable
+    try:
+        await sync_user_timetable(db, uid)
+    except Exception:
+        pass
+
     return {"message": "Topic deleted"}

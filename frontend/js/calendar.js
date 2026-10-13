@@ -1,7 +1,7 @@
 /**
  * calendar.js — Interactive monthly calendar with study sessions
  */
-import { initTheme, requireAuth, toast, formatTime, todayISO, sessionChip } from '../js/app.js';
+import { initTheme, requireAuth, toast, formatTime, todayISO, formatDateISO, parseISODate, sessionChip } from '../js/app.js';
 import api from '../js/api.js';
 
 initTheme();
@@ -60,7 +60,7 @@ async function renderMonth() {
     // Load weekly data
     let cur = new Date(startDate);
     while (cur <= endDate) {
-      const weekStart = cur.toISOString().split('T')[0];
+      const weekStart = formatDateISO(cur);
       try {
         const data = await api.getWeekly(weekStart);
         data.days?.forEach(d => {
@@ -93,14 +93,16 @@ function buildCalendarGrid() {
 
   let cur = new Date(start);
   while (cur <= end) {
-    const dateStr = cur.toISOString().split('T')[0];
+    const dateStr = formatDateISO(cur);
     const isToday = dateStr === todayStr;
     const isCurrentMonth = cur.getMonth() === viewMonth;
     const isSelected = dateStr === selectedDate;
     const sessions = sessionsByDate[dateStr] || [];
+    const completedCount = sessions.filter(s => s.status === 'completed').length;
+    const isAllCompleted = sessions.length > 0 && completedCount === sessions.length;
 
     const cell = document.createElement('div');
-    cell.className = `cal-cell${isToday ? ' today' : ''}${!isCurrentMonth ? ' other-month' : ''}${isSelected ? ' selected' : ''}`;
+    cell.className = `cal-cell${isToday ? ' today' : ''}${!isCurrentMonth ? ' other-month' : ''}${isSelected ? ' selected' : ''}${isAllCompleted ? ' completed-day' : ''}`;
     cell.setAttribute('role', 'gridcell');
     cell.setAttribute('tabindex', '0');
     cell.setAttribute('aria-label', `${dateStr}${sessions.length ? ', ' + sessions.length + ' sessions' : ''}`);
@@ -108,10 +110,13 @@ function buildCalendarGrid() {
     cell.dataset.date = dateStr;
 
     cell.innerHTML = `
-      <div class="cal-day-num">${cur.getDate()}</div>
+      <div class="flex justify-between items-center mb-1">
+        <div class="cal-day-num">${cur.getDate()}</div>
+        ${completedCount > 0 ? `<div class="dash-cal-tick-badge ${isAllCompleted ? 'all-completed' : 'partial-completed'}">✓ ${completedCount}</div>` : ''}
+      </div>
       ${sessions.slice(0, 3).map(s => `
-        <div class="cal-event" style="background:${s.subject_color}" title="${s.topic_name}">
-          ${s.topic_name}
+        <div class="cal-event ${s.status === 'completed' ? 'completed' : ''}" style="background:${s.subject_color};${s.status === 'completed' ? 'opacity:0.75;text-decoration:line-through' : ''}" title="${s.topic_name}">
+          ${s.status === 'completed' ? '✓ ' : ''}${s.topic_name}
         </div>
       `).join('')}
       ${sessions.length > 3 ? `<div style="font-size:9px;color:var(--text-muted)">+${sessions.length-3} more</div>` : ''}
@@ -156,17 +161,41 @@ async function loadDaySessions(dateStr) {
     return;
   }
 
-  container.innerHTML = daySessions.map(s => `
-    <div class="flex items-start gap-3 mb-3 pb-3" style="border-bottom:1px solid var(--border-subtle)" role="listitem">
-      <div style="width:3px;height:40px;background:${s.subject_color};border-radius:var(--radius-full);flex-shrink:0;margin-top:2px" aria-hidden="true"></div>
-      <div style="flex:1;min-width:0">
-        <div class="text-sm font-semibold truncate" style="color:var(--text-primary)">${s.topic_name}</div>
-        <div class="text-xs text-muted">${s.subject_name}</div>
-        <div class="text-xs text-muted">${formatTime(s.start_time)} · ${s.duration_minutes}min</div>
-        ${sessionChip(s.session_type)}
+  container.innerHTML = daySessions.map(s => {
+    const isCompleted = s.status === 'completed';
+    return `
+      <div class="flex items-center gap-3 mb-3 pb-3" style="border-bottom:1px solid var(--border-subtle)" role="listitem">
+        <input type="checkbox" class="session-checkbox cal-page-checkbox" data-id="${s.id}" ${isCompleted ? 'checked' : ''} aria-label="Mark ${s.topic_name} complete">
+        <div style="width:3px;height:40px;background:${s.subject_color};border-radius:var(--radius-full);flex-shrink:0" aria-hidden="true"></div>
+        <div style="flex:1;min-width:0">
+          <div class="text-sm font-semibold truncate" style="color:var(--text-primary);${isCompleted ? 'text-decoration:line-through;opacity:0.75' : ''}">${s.topic_name}</div>
+          <div class="text-xs text-muted">${s.subject_name} · ${formatTime(s.start_time)} · ${s.duration_minutes}min</div>
+          <div class="flex gap-1 mt-1 flex-wrap">${sessionChip(s.session_type)}</div>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+
+  // Setup checkbox listener for full calendar page
+  container.querySelectorAll('.cal-page-checkbox').forEach(chk => {
+    chk.addEventListener('change', async e => {
+      const id = e.target.dataset.id;
+      const isChecking = e.target.checked;
+      const sessObj = daySessions.find(x => x.id === id);
+      if (sessObj) sessObj.status = isChecking ? 'completed' : 'scheduled';
+      buildCalendarGrid();
+      try {
+        if (isChecking) await api.completeSession(id);
+        else await api.uncompleteSession(id);
+        toast.success(isChecking ? 'Completed! ✅' : 'Reopened', '');
+      } catch (err) {
+        if (sessObj) sessObj.status = !isChecking ? 'completed' : 'scheduled';
+        e.target.checked = !isChecking;
+        buildCalendarGrid();
+        toast.error('Failed', err.message);
+      }
+    });
+  });
 }
 
 // Navigation

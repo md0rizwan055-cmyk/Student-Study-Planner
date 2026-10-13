@@ -7,9 +7,9 @@
 import {
   DEMO_USER, DEMO_TOKEN,
   computeOverview, computeSubjectProgress,
-  computeWeeklyHours, computeStreaks, computeAnalytics,
+  computeWeeklyHours, computeStreaks, computeAnalytics, computeDailyAnalytics,
   computeExamPrep, computeRecommendations, computePlanStatus,
-  getSessionsForDate, getWeekData, getAIResponse,
+  getSessionsForDate, getWeekData, getAIResponse, formatDateISO, generateAISchedule,
   state, saveState, switchUserState, resetStateForUser,
 } from './demoData.js';
 
@@ -83,7 +83,7 @@ export function ensureDemoSession() {
       (pathname.endsWith('/index.html') && !pathname.includes('/dashboard') && !pathname.includes('/planner') && 
        !pathname.includes('/calendar') && !pathname.includes('/focus') && !pathname.includes('/subjects') && 
        !pathname.includes('/progress') && !pathname.includes('/ai-chat') && !pathname.includes('/settings') && 
-       !pathname.includes('/onboarding'));
+       !pathname.includes('/onboarding') && !pathname.includes('/timetable'));
     if (!isAuthPage && !isLandingPage) {
       setToken(DEMO_TOKEN);
       setUser(DEMO_USER);
@@ -115,7 +115,7 @@ function findSession(id) {
     if (s) return s;
   }
   // Also look in today's sessions
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatDateISO(new Date());
   const todaySess = getSessionsForDate(today);
   return todaySess?.find(s => s.id === id);
 }
@@ -370,7 +370,22 @@ export const api = {
     } catch (e) {
       console.log('[API Pipeline Note] using fallback plan generator');
     }
-    await delay(600);
+
+    // Fallback local AI Schedule Generator
+    generateAISchedule(force || true);
+
+    // Clear timetable caches in localStorage for active user
+    try {
+      const u = getUser();
+      const uid = u?.id || 'demo-user-001';
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sp_timetable_' + uid)) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (e) {}
+
+    await delay(300);
     return { ...computePlanStatus(), generated_at: new Date().toISOString() };
   },
 
@@ -414,16 +429,34 @@ export const api = {
 
   // ── Sessions ─────────────────────────────────────────────────
   getSessions: async (date) => {
-    const d = date || new Date().toISOString().split('T')[0];
+    const d = date || formatDateISO(new Date());
     return resolve(getSessionsForDate(d));
   },
 
   completeSession: async (id) => {
-    await delay(300);
+    await delay(200);
     const s = findSession(id);
-    if (s) s.status = 'completed';
+    if (s) {
+      s.status = 'completed';
+      s.completed_at = new Date().toISOString();
+    }
     saveState();
     return { success: true, session_id: id };
+  },
+
+  uncompleteSession: async (id) => {
+    await delay(200);
+    const s = findSession(id);
+    if (s) {
+      s.status = 'scheduled';
+      s.completed_at = null;
+      s.feedback = null;
+    }
+    saveState();
+    return {
+      success: true,
+      session_id: id
+    };
   },
 
   skipSession: async (id) => {
@@ -448,7 +481,17 @@ export const api = {
 
   submitFeedback: async (id, data) => {
     await delay(200);
+    const s = findSession(id);
+    if (s) {
+      s.feedback = data;
+      s.status = 'completed';
+    }
+    saveState();
     return { success: true };
+  },
+
+  getDailyAnalytics: async (date, days = 7) => {
+    return resolve(computeDailyAnalytics(date, days));
   },
 
   redistributeMissed: async () => {

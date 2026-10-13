@@ -54,6 +54,9 @@ async def get_subjects(current_user: dict = Depends(get_current_user)):
     return result
 
 
+from routes.planner import sync_user_timetable
+
+
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_subject(body: SubjectCreate, current_user: dict = Depends(get_current_user)):
     db = get_db()
@@ -75,6 +78,13 @@ async def create_subject(body: SubjectCreate, current_user: dict = Depends(get_c
     }
     result = await db.subjects.insert_one(doc)
     doc["_id"] = result.inserted_id
+
+    # Auto sync timetable
+    try:
+        await sync_user_timetable(db, uid)
+    except Exception:
+        pass
+
     return _format_subject(doc, {"total": 0, "completed": 0, "progress": 0.0})
 
 
@@ -99,6 +109,21 @@ async def update_subject(
     update_data["updated_at"] = datetime.now(timezone.utc)
     await db.subjects.update_one({"_id": subject_oid}, {"$set": update_data})
 
+    # Update existing sessions matching this subject
+    sess_update = {}
+    if "name" in update_data:
+        sess_update["subject_name"] = update_data["name"].strip()
+    if "color" in update_data:
+        sess_update["subject_color"] = update_data["color"]
+    if sess_update:
+        await db.sessions.update_many({"user_id": uid, "subject_id": subject_id}, {"$set": sess_update})
+
+    # Auto sync timetable
+    try:
+        await sync_user_timetable(db, uid)
+    except Exception:
+        pass
+
     updated = await db.subjects.find_one({"_id": subject_oid})
     stats = await _get_topic_stats(db, uid, str(subject_oid))
     return _format_subject(updated, stats)
@@ -114,4 +139,12 @@ async def delete_subject(subject_id: str, current_user: dict = Depends(get_curre
         raise HTTPException(status_code=404, detail="Subject not found")
     await db.subjects.delete_one({"_id": subject_oid})
     await db.topics.delete_many({"subject_id": str(subject_oid), "user_id": uid})
+    await db.sessions.delete_many({"subject_id": subject_id, "user_id": uid})
+
+    # Auto sync timetable
+    try:
+        await sync_user_timetable(db, uid)
+    except Exception:
+        pass
+
     return {"message": "Subject and its topics deleted"}
